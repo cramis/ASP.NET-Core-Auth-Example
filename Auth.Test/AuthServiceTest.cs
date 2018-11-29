@@ -13,7 +13,11 @@ namespace Auth.Test {
         private ITokenService tokenService;
 
         public AuthServiceTest () {
-            var appsetting = Options.Create (new AppSettings () { JwtIssuer = "https://apis.donga.ac.kr/auth" });
+            var appsetting = Options.Create (new AppSettings () {
+                JwtIssuer = "https://apis.donga.ac.kr/auth",
+                    JwtExpireMins = 15,
+                    JwtKey = "ECOMMERCE_SUPER_SECRET_KEY"
+            });
 
             loginService = new TestLoginService ();
             apiUserValidService = new TestApiKeyValiationService ();
@@ -49,7 +53,7 @@ namespace Auth.Test {
 
             string expect = "https://apis.donga.ac.kr/auth";
 
-            var tokenInfo = tokenService.CreateToken (user, apiUserInfo);
+            var tokenInfo = tokenService.GetToken (user, apiUserInfo);
 
             Assert.Equal (expect, tokenInfo.JwtToken);
         }
