@@ -1,5 +1,7 @@
-namespace Auth.Entities {
-    public class TokenInfo {
+namespace Auth.Entities
+{
+    public class TokenInfo
+    {
         // - JWT Token : 인증용 토큰
         //     1. Iss : JWT 인증을 해주고자 하는 인증 서비스 ( [https://apis.donga.ac.kr/auth](https://apis.donga.ac.kr/auth) )
         //     2. Aud : JWT 인증받고자 하는 서비스명( 학생정보서비스인 경우 [https://student.donga.ac.kr](https://student.donga.ac.kr) )

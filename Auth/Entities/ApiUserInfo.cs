@@ -1,7 +1,9 @@
 using System;
 
-namespace Auth.Entities {
-    public class ApiUserInfo {
+namespace Auth.Entities
+{
+    public class ApiUserInfo
+    {
         // 인증키 부여 구현 방법
         // - 인증키 값
         // - 서비스 명
