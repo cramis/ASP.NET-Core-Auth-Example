@@ -40,7 +40,8 @@ namespace Auth.Controllers
 
                 var apiUserInfo = this.apikeyValidService.Validate(loginInfo.APIKey);
 
-                logger.Information("apiUserInfo : {apiUserInfo}", JsonConvert.SerializeObject(apiUserInfo));
+
+                logger.Debug("apiUserInfo : {apiUserInfo}", JsonConvert.SerializeObject(apiUserInfo));
 
                 if (apiUserInfo == null)
                 {
@@ -49,7 +50,7 @@ namespace Auth.Controllers
 
                 var user = this.loginService.Login(loginInfo.Id, loginInfo.Password);
 
-                logger.Information("user : {@user}", JsonConvert.SerializeObject(user));
+                logger.Debug("user : {@user}", JsonConvert.SerializeObject(user));
 
                 if (user == null)
                 {

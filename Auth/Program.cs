@@ -14,17 +14,28 @@ namespace Auth
 {
     public class Program
     {
+#if DEBUG
+        private const string DefaultEnvironmentName = "Development";
+#else
+            private const string DefaultEnvironmentName = "Production";
+#endif
         public static int Main(string[] args)
         {
-            // 로그 기능 추가
-            Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-            .Enrich.FromLogContext()
-            .WriteTo.Console()
+            // Serilog 로그 기능 추가
 
-            .WriteTo.RollingFile(Path.Combine("Logs", "log-{Date}.txt"))
-            .CreateLogger();
+            var _environmentName = Environment.GetEnvironmentVariable("ASPNET_ENVIRONMENT") ??
+                                Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ??
+                                DefaultEnvironmentName;
+
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                        .AddJsonFile("appsettings.json")
+                        .AddJsonFile($"appsettings.{_environmentName}.json", optional: true, reloadOnChange: true)
+                        .Build();
+
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(configuration)
+                .CreateLogger();
 
             try
             {
@@ -42,21 +53,6 @@ namespace Auth
                 Log.CloseAndFlush();
             }
 
-            // CreateWebHostBuilder(args).Build().Run();
-
-            // var webHost = CreateWebHostBuilder(args).Build();
-
-            // var configuration = new ConfigurationBuilder()
-            //     .SetBasePath(Directory.GetCurrentDirectory())
-            //             .AddJsonFile("appsettings.json")
-            //             .AddJsonFile($"appsettings.{_environmentName}.json", optional: true, reloadOnChange: true)
-            //             .Build();
-
-            // Log.Logger = new LoggerConfiguration()
-            //     .ReadFrom.Configuration(configuration)
-            //     .CreateLogger();
-
-            // webHost.Run();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
