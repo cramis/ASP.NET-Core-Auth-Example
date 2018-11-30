@@ -892,6 +892,8 @@ namespace Dau.Util
 
     }
 
+    #region Attributes
+
     [System.AttributeUsage(System.AttributeTargets.Property)]
     public class KeyColumn : System.Attribute
     {
@@ -1003,6 +1005,8 @@ namespace Dau.Util
             return this.synonym;
         }
     }
+
+    #endregion
 
     public interface ILogger
     {
