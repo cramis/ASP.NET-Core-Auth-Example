@@ -6,7 +6,10 @@ using Auth.Entities;
 using Auth.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using Serilog;
 
 namespace Auth.Controllers
 {
@@ -17,12 +20,14 @@ namespace Auth.Controllers
         private readonly ILoginService loginService;
         private readonly IApiKeyValiationService apikeyValidService;
         private readonly ITokenService tokenService;
+        private readonly Serilog.ILogger logger;
 
         public AuthController(ILoginService loginService, IApiKeyValiationService apikeyValidService, ITokenService tokenService)
         {
             this.loginService = loginService;
             this.apikeyValidService = apikeyValidService;
             this.tokenService = tokenService;
+            this.logger = Log.Logger;
         }
 
         [HttpPost]
@@ -35,12 +40,16 @@ namespace Auth.Controllers
 
                 var apiUserInfo = this.apikeyValidService.Validate(loginInfo.APIKey);
 
+                logger.Information("apiUserInfo : {apiUserInfo}", JsonConvert.SerializeObject(apiUserInfo));
+
                 if (apiUserInfo == null)
                 {
                     return NotFound("유효한 apiKey가 아닙니다.");
                 }
 
                 var user = this.loginService.Login(loginInfo.Id, loginInfo.Password);
+
+                logger.Information("user : {@user}", JsonConvert.SerializeObject(user));
 
                 if (user == null)
                 {
@@ -58,7 +67,8 @@ namespace Auth.Controllers
             }
             catch (Exception ex)
             {
-                return NotFound(ex.ToString());
+                logger.Error(ex, "인증에 실패했습니다.");
+                return NotFound("인증에 실패했습니다.");
             }
 
         }

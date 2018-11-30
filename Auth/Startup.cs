@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
+
 namespace Auth
 {
     public class Startup
@@ -81,8 +82,9 @@ namespace Auth
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+
 
             if (env.IsDevelopment())
             {
@@ -104,6 +106,8 @@ namespace Auth
 
             app.UseHttpsRedirection();
             app.UseMvc();
+
+            loggerFactory.AddFile("Logs/mylog-{Date}.txt");
         }
     }
 }
