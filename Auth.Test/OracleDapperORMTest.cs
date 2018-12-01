@@ -127,48 +127,99 @@ namespace Dau.ORM
         }
 
         [Fact]
-        public void GetListString_쿼리_가져오기()
+        public void SelectString_쿼리_가져오기()
         {
             OracleORMHelper helper = new OracleORMHelper();
 
-            OracleCRUDString crudString = new OracleCRUDString(helper);
+            OracleRepositoryString RepositoryString = new OracleRepositoryString(helper);
             TestClass t = new TestClass();
-            string expect = "SELECT * FROM TableNm WHERE 1=1 ";
-            var actual = crudString.GetListString(t);
+            string expect = "SELECT * FROM TableNm WHERE 1=1";
+            var actual = RepositoryString.SelectString(t);
 
             Assert.Equal(expect, actual);
 
 
             t.Id = 1;
             string expect2 = "SELECT * FROM TableNm WHERE 1=1 AND TableNm.Id = :Id";
-            var actual2 = crudString.GetListString(t);
+            var actual2 = RepositoryString.SelectString(t);
 
             Assert.Equal(expect2, actual2);
         }
 
         [Fact]
-        public void GetListString_연산자_이용해서_쿼리_가져오기()
+        public void SelectString_연산자_이용해서_쿼리_가져오기()
         {
             OracleORMHelper helper = new OracleORMHelper();
 
-            OracleCRUDString crudString = new OracleCRUDString(helper);
+            OracleRepositoryString RepositoryString = new OracleRepositoryString(helper);
             TestClass t = new TestClass();
-            string expect = "SELECT * FROM TableNm WHERE 1=1 AND TableNm.Id < 1 ";
-            var actual = crudString.GetListString(t, new ColumnInfo("Id", "<", "1"));
+            string expect = "SELECT * FROM TableNm WHERE 1=1 AND TableNm.Id < 1";
+            var actual = RepositoryString.SelectString(t, new ColumnInfo("Id", "<", "1"));
 
             Assert.Equal(expect, actual);
 
-            string expect2 = "SELECT * FROM TableNm WHERE 1=1 AND TableNm.Id >= 6 AND TableNm.Data BETWEEN 1 AND 8 ";
-            var actual2 = crudString.GetListString(t, new ColumnInfo(nameof(t.Id), ">=", "6"), new ColumnInfo(nameof(t.Data), "between", "1", "8"));
+            string expect2 = "SELECT * FROM TableNm WHERE 1=1 AND TableNm.Id >= 6 AND TableNm.Data BETWEEN 1 AND 8";
+            var actual2 = RepositoryString.SelectString(t, new ColumnInfo(nameof(t.Id), ">=", "6"), new ColumnInfo(nameof(t.Data), "between", "1", "8"));
 
             Assert.Equal(expect2, actual2);
 
-            string expect3 = "SELECT * FROM TableNm WHERE 1=1 AND TableNm.RealColumnName IS NOT NULL ";
-            var actual3 = crudString.GetListString(t, new ColumnInfo(helper.ColumnName(t, nameof(t.FakeNameColumn)), "is not null"));
+            string expect3 = "SELECT * FROM TableNm WHERE 1=1 AND TableNm.RealColumnName IS NOT NULL AND TableNm.Data LIKE '%TEST'";
+            var actual3 = RepositoryString.SelectString(t, new ColumnInfo(helper.ColumnName(t, nameof(t.FakeNameColumn)), "is not null"), new ColumnInfo(nameof(t.Data), "like", "'%TEST'"));
 
             Assert.Equal(expect3, actual3);
+        }
+
+        [Fact]
+        public void InsertString_값_삽입하기()
+        {
+            OracleORMHelper helper = new OracleORMHelper();
+
+            OracleRepositoryString RepositoryString = new OracleRepositoryString(helper);
+            TestClass t = new TestClass();
+
+            Assert.Throws<Exception>(() => RepositoryString.InsertStr(t));
+
+            t.Id = 1;
+            t.Data = "test";
+
+            string expect2 = "INSERT INTO TableNm ( Id, Data, CDate ) VALUES ( :Id, :Data, sysdate )";
+            var actual2 = RepositoryString.InsertStr(t);
+
+            Assert.Equal(expect2, actual2);
 
 
+            t.FakeNameColumn = "test";
+
+            string expect3 = "INSERT INTO TableNm ( Id, Data, RealColumnName, CDate ) VALUES ( :Id, :Data, :FakeNameColumn, sysdate )";
+            var actual3 = RepositoryString.InsertStr(t);
+
+            Assert.Equal(expect3, actual3);
+        }
+
+        [Fact]
+        public void UpdateString_값_수정하기()
+        {
+            OracleORMHelper helper = new OracleORMHelper();
+
+            OracleRepositoryString RepositoryString = new OracleRepositoryString(helper);
+            TestClass t = new TestClass();
+
+            Assert.Throws<Exception>(() => RepositoryString.UpdateStr(t));
+
+            t.Id = 1;
+            t.Data = "test";
+
+            string expect2 = "UPDATE TableNm SET Id = :Id, Data = :Data, LDate = sysdate WHERE Id = :Id";
+            var actual2 = RepositoryString.UpdateStr(t);
+
+            Assert.Equal(expect2, actual2);
+
+            t.FakeNameColumn = "test";
+
+            string expect3 = "UPDATE TableNm SET Id = :Id, Data = :Data, RealColumnName = :FakeNameColumn, LDate = sysdate WHERE Id = :Id";
+            var actual3 = RepositoryString.UpdateStr(t);
+
+            Assert.Equal(expect3, actual3);
         }
 
 
