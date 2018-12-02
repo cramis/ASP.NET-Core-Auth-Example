@@ -4,13 +4,15 @@ using System.Data;
 using System.Linq;
 using System.Text;
 
-namespace Dau.ORM
+using DapperRepositoryException;
+
+namespace DapperRepository
 {
     interface IRepositoryString
     {
         string SelectString<T>(T model);
 
-        string SelectString<T>(T model, params ColumnInfo[] args);
+        string SelectString<T>(T model, params ParamColumn[] args);
         string InsertStr<T>(T model);
         string UpdateStr<T>(T model);
         string MergeStr<T>(T model);
@@ -65,7 +67,7 @@ namespace Dau.ORM
             return str.ToString().TrimEnd();
         }
 
-        public string SelectString<T>(T model, params ColumnInfo[] args)
+        public string SelectString<T>(T model, params ParamColumn[] args)
         {
             StringBuilder str = new StringBuilder("");
             string tableName = helper.GetTableName(model.GetType());
@@ -79,7 +81,7 @@ namespace Dau.ORM
             {
                 if (string.IsNullOrWhiteSpace(a.Operator))
                 {
-                    throw new Exception("연산자를 존재하지 않습니다. 연산자가 반드시 입력되어야 합니다. 예) '>', '<=', 'between' 등 ");
+                    throw new DBOperatorNotFoundException("연산자를 존재하지 않습니다. 연산자가 반드시 입력되어야 합니다. 예) '>', '<=', 'between' 등 ");
                 }
 
                 StringBuilder operatorAndvalues = new StringBuilder();
@@ -141,7 +143,7 @@ namespace Dau.ORM
 
             if (pk_Count < 1)
             {
-                throw new Exception("Insert를 할때에는 Primary Key가 한개 이상 존재해야 합니다.");
+                throw new PkNotFoundException("Insert를 할때에는 Primary Key가 한개 이상 존재해야 합니다.");
             }
 
             str.Append(" ) VALUES ( ");
@@ -176,7 +178,7 @@ namespace Dau.ORM
 
             return str.ToString().TrimEnd();
         }
-        public string UpdateStr<T>(T model)
+        public string UpdateStr<T>(T model, bool IsPosibleNullValue)
         {
             StringBuilder str = new StringBuilder("");
             string tableName = helper.GetTableName(model.GetType());
@@ -190,8 +192,13 @@ namespace Dau.ORM
                 var columnName = helper.ColumnName(p);
 
 
-                if (p.GetValue(model) != null || helper.CheckLastModifiedDate(p))
+                if (IsPosibleNullValue || p.GetValue(model) != null || helper.CheckLastModifiedDate(p))
                 {
+                    if (helper.CheckCreatedDate(p))
+                    {
+                        continue;
+                    }
+
                     if (!helper.CheckIgnore(p))
                     {
                         if (count >= 1)
@@ -203,7 +210,11 @@ namespace Dau.ORM
                         {
                             str.AppendFormat("{0} = {1}", columnName, DBNowDatefunction);
                         }
-                        else
+                        else if (p.GetValue(model) == null)
+                        {
+                            str.AppendFormat("{0} = NULL", columnName);
+                        }
+                        else if (helper.CheckCreatedDate(p) == false)
                         {
                             str.AppendFormat("{0} = {1}{2}", columnName, ParamMark, p.Name);
                         }
@@ -222,7 +233,7 @@ namespace Dau.ORM
                 {
                     if (p.GetValue(model) == null)
                     {
-                        throw new Exception("Update를 할때에는 Primary Key에 반드시 값이 존재해야 합니다.");
+                        throw new PkNotFoundException("Update를 할때에는 Primary Key에 반드시 값이 존재해야 합니다.");
                     }
 
                     if (count >= 1)
@@ -238,15 +249,86 @@ namespace Dau.ORM
 
             return str.ToString().TrimEnd();
         }
+
+        public string UpdateStr<T>(T model)
+        {
+            return UpdateStr(model, false);
+        }
+
         public string MergeStr<T>(T model)
         {
             throw new NotImplementedException();
         }
         public string DeleteStr<T>(T model)
         {
-            throw new NotImplementedException();
+            StringBuilder str = new StringBuilder("");
+            string tableName = helper.GetTableName(model.GetType());
+            str.AppendFormat("DELETE FROM {0}", tableName);
+            str.Append(" WHERE 1=1 ");
+
+            var props = model.GetType().GetProperties();
+
+            int count = 0;
+            foreach (var p in props)
+            {
+                var columnName = helper.ColumnName(p);
+
+                if (p.GetValue(model) != null)
+                {
+                    str.AppendFormat("AND {0}.{1} = :{2}", tableName, columnName, p.Name);
+                    count++;
+                }
+
+            }
+
+            return str.ToString().TrimEnd();
+        }
+
+        public string DeleteStr<T>(T model, params ParamColumn[] args)
+        {
+            StringBuilder str = new StringBuilder("");
+            string tableName = helper.GetTableName(model.GetType());
+            str.AppendFormat("DELETE FROM {0}", tableName);
+            str.Append(" WHERE 1=1 ");
+
+            var props = model.GetType().GetProperties();
+
+            int count = 0;
+            foreach (var a in args)
+            {
+                if (string.IsNullOrWhiteSpace(a.Operator))
+                {
+                    throw new DBOperatorNotFoundException("연산자를 존재하지 않습니다. 연산자가 반드시 입력되어야 합니다. 예) '>', '<=', 'between' 등 ");
+                }
+
+                StringBuilder operatorAndvalues = new StringBuilder();
+
+                switch (a.Operator.ToUpper())
+                {
+                    case "BETWEEN":
+                        operatorAndvalues.AppendFormat("BETWEEN {0} AND {1} ", a.Operator_values[0], a.Operator_values[1]);
+                        break;
+                    case "IS NULL":
+                        operatorAndvalues.Append("IS NULL ");
+                        break;
+                    case "IS NOT NULL":
+                        operatorAndvalues.Append("IS NOT NULL ");
+                        break;
+                    default:
+                        operatorAndvalues.AppendFormat("{0} {1} ", a.Operator.ToUpper(), a.Operator_values[0]);
+                        break;
+                }
+
+                str.AppendFormat("AND {0}.{1} {2}", tableName, a.COLUMN_NAME, operatorAndvalues);
+                count++;
+
+            }
+
+            return str.ToString().TrimEnd();
         }
     }
+
+
 
     public class OracleRepositoryString : BaseRepositoryString
     {

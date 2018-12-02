@@ -1,4 +1,4 @@
-namespace Dau.ORM
+namespace DapperRepository
 {
     [System.AttributeUsage(System.AttributeTargets.Property)]
     public class CreatedDate : System.Attribute

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Options;
 using Xunit;
 
-using Dau.ORM;
+using DapperRepository;
 
 namespace Auth.Test
 {

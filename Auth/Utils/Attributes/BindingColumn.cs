@@ -1,6 +1,6 @@
 
 
-namespace Dau.ORM
+namespace DapperRepository
 {
     [System.AttributeUsage(System.AttributeTargets.Property)]
     public class BindingColumn : System.Attribute

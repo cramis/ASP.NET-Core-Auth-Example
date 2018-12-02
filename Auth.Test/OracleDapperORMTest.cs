@@ -3,9 +3,10 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Options;
 using Xunit;
 
-using Dau.ORM;
+using DapperRepository;
+using DapperRepositoryException;
 
-namespace Dau.ORM
+namespace DapperRepository.Test
 {
     public class OracleDapperORMTest
     {
@@ -154,17 +155,17 @@ namespace Dau.ORM
             OracleRepositoryString RepositoryString = new OracleRepositoryString(helper);
             TestClass t = new TestClass();
             string expect = "SELECT * FROM TableNm WHERE 1=1 AND TableNm.Id < 1";
-            var actual = RepositoryString.SelectString(t, new ColumnInfo("Id", "<", "1"));
+            var actual = RepositoryString.SelectString(t, new ParamColumn("Id", "<", "1"));
 
             Assert.Equal(expect, actual);
 
             string expect2 = "SELECT * FROM TableNm WHERE 1=1 AND TableNm.Id >= 6 AND TableNm.Data BETWEEN 1 AND 8";
-            var actual2 = RepositoryString.SelectString(t, new ColumnInfo(nameof(t.Id), ">=", "6"), new ColumnInfo(nameof(t.Data), "between", "1", "8"));
+            var actual2 = RepositoryString.SelectString(t, new ParamColumn(nameof(t.Id), ">=", "6"), new ParamColumn(nameof(t.Data), "between", "1", "8"));
 
             Assert.Equal(expect2, actual2);
 
             string expect3 = "SELECT * FROM TableNm WHERE 1=1 AND TableNm.RealColumnName IS NOT NULL AND TableNm.Data LIKE '%TEST'";
-            var actual3 = RepositoryString.SelectString(t, new ColumnInfo(helper.ColumnName(t, nameof(t.FakeNameColumn)), "is not null"), new ColumnInfo(nameof(t.Data), "like", "'%TEST'"));
+            var actual3 = RepositoryString.SelectString(t, new ParamColumn(helper.ColumnName(t, nameof(t.FakeNameColumn)), "is not null"), new ParamColumn(nameof(t.Data), "like", "'%TEST'"));
 
             Assert.Equal(expect3, actual3);
         }
@@ -177,7 +178,7 @@ namespace Dau.ORM
             OracleRepositoryString RepositoryString = new OracleRepositoryString(helper);
             TestClass t = new TestClass();
 
-            Assert.Throws<Exception>(() => RepositoryString.InsertStr(t));
+            Assert.Throws<PkNotFoundException>(() => RepositoryString.InsertStr(t));
 
             t.Id = 1;
             t.Data = "test";
@@ -204,9 +205,10 @@ namespace Dau.ORM
             OracleRepositoryString RepositoryString = new OracleRepositoryString(helper);
             TestClass t = new TestClass();
 
-            Assert.Throws<Exception>(() => RepositoryString.UpdateStr(t));
+            Assert.Throws<PkNotFoundException>(() => RepositoryString.UpdateStr(t));
 
             t.Id = 1;
+
             t.Data = "test";
 
             string expect2 = "UPDATE TableNm SET Id = :Id, Data = :Data, LDate = sysdate WHERE Id = :Id";
@@ -214,10 +216,59 @@ namespace Dau.ORM
 
             Assert.Equal(expect2, actual2);
 
+            string expect3 = "UPDATE TableNm SET Id = :Id, Data = :Data, RealColumnName = NULL, LDate = sysdate WHERE Id = :Id";
+            var actual3 = RepositoryString.UpdateStr(t, true);
+
+            Assert.Equal(expect3, actual3);
+
             t.FakeNameColumn = "test";
 
-            string expect3 = "UPDATE TableNm SET Id = :Id, Data = :Data, RealColumnName = :FakeNameColumn, LDate = sysdate WHERE Id = :Id";
-            var actual3 = RepositoryString.UpdateStr(t);
+            string expect4 = "UPDATE TableNm SET Id = :Id, Data = :Data, RealColumnName = :FakeNameColumn, LDate = sysdate WHERE Id = :Id";
+            var actual4 = RepositoryString.UpdateStr(t);
+
+            Assert.Equal(expect4, actual4);
+        }
+
+
+        [Fact]
+        public void DeleteString_값_삭제하기()
+        {
+            OracleORMHelper helper = new OracleORMHelper();
+
+            OracleRepositoryString RepositoryString = new OracleRepositoryString(helper);
+            TestClass t = new TestClass();
+            string expect = "DELETE FROM TableNm WHERE 1=1";
+            var actual = RepositoryString.DeleteStr(t);
+
+            Assert.Equal(expect, actual);
+
+
+            t.Id = 1;
+            string expect2 = "DELETE FROM TableNm WHERE 1=1 AND TableNm.Id = :Id";
+            var actual2 = RepositoryString.DeleteStr(t);
+
+            Assert.Equal(expect2, actual2);
+        }
+
+        [Fact]
+        public void DeleteStr_연산자_이용해서_값_삭제하기()
+        {
+            OracleORMHelper helper = new OracleORMHelper();
+
+            OracleRepositoryString RepositoryString = new OracleRepositoryString(helper);
+            TestClass t = new TestClass();
+            string expect = "DELETE FROM TableNm WHERE 1=1 AND TableNm.Id < 1";
+            var actual = RepositoryString.DeleteStr(t, new ParamColumn("Id", "<", "1"));
+
+            Assert.Equal(expect, actual);
+
+            string expect2 = "DELETE FROM TableNm WHERE 1=1 AND TableNm.Id >= 6 AND TableNm.Data BETWEEN 1 AND 8";
+            var actual2 = RepositoryString.DeleteStr(t, new ParamColumn(nameof(t.Id), ">=", "6"), new ParamColumn(nameof(t.Data), "between", "1", "8"));
+
+            Assert.Equal(expect2, actual2);
+
+            string expect3 = "DELETE FROM TableNm WHERE 1=1 AND TableNm.RealColumnName IS NOT NULL AND TableNm.Data LIKE '%TEST'";
+            var actual3 = RepositoryString.DeleteStr(t, new ParamColumn(helper.ColumnName(t, nameof(t.FakeNameColumn)), "is not null"), new ParamColumn(nameof(t.Data), "like", "'%TEST'"));
 
             Assert.Equal(expect3, actual3);
         }

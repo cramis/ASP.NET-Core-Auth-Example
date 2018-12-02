@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using Dapper;
 
-namespace Dau.ORM
+namespace DapperRepository
 {
     public interface IORMHelper
     {
