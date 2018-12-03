@@ -256,7 +256,7 @@ namespace DapperRepository
             return UpdateStr(model, false);
         }
 
-        public string MergeStr<T>(T model, bool IsPosibleNullValue)
+        public virtual string MergeStr<T>(T model, bool IsPosibleNullValue)
         {
             StringBuilder str = new StringBuilder("");
             string tableName = helper.GetTableName(model.GetType());
@@ -402,7 +402,7 @@ namespace DapperRepository
 
                 if (p.GetValue(model) != null)
                 {
-                    str.AppendFormat("AND {0}.{1} = :{2}", tableName, columnName, p.Name);
+                    str.AppendFormat("AND {0} = {1}{2} ", columnName, ParamMark, p.Name);
                     count++;
                 }
 
@@ -446,7 +446,7 @@ namespace DapperRepository
                         break;
                 }
 
-                str.AppendFormat("AND {0}.{1} {2}", tableName, a.COLUMN_NAME, operatorAndvalues);
+                str.AppendFormat("AND {0} {1}", a.COLUMN_NAME, operatorAndvalues);
                 count++;
 
             }
@@ -467,8 +467,82 @@ namespace DapperRepository
 
     public class SqliteRepositoryString : BaseRepositoryString
     {
+        private readonly IORMHelper helper;
         public SqliteRepositoryString(IORMHelper helper) : base(helper, ":", "DATE('NOW')")
         {
+            this.helper = helper;
+        }
+
+        public override string MergeStr<T>(T model, bool IsPosibleNullValue)
+        {
+            StringBuilder str = new StringBuilder("");
+            string tableName = helper.GetTableName(model.GetType());
+            var props = model.GetType().GetProperties();
+
+            long count = 0;
+            long pk_Count = 0;
+
+            str.AppendFormat("INSERT OR REPLACE INTO {0} (", tableName);
+
+            foreach (var p in props)
+            {
+                if (!helper.CheckIgnore(p))
+                {
+                    var columnName = helper.ColumnName(p);
+
+                    if (p.GetValue(model) != null || helper.CheckCreatedDate(p))
+                    {
+                        if (helper.CheckKey(p))
+                        {
+                            pk_Count++;
+                        }
+                        if (count >= 1)
+                        {
+                            str.Append(", ");
+                        }
+                        str.Append(columnName);
+                        count++;
+                    }
+                }
+            }
+
+            if (pk_Count < 1)
+            {
+                throw new PkNotFoundException("Merge 할때에는 Primary Key가 한개 이상 존재해야 합니다.");
+            }
+
+            str.Append(" ) VALUES ( ");
+
+            count = 0;
+            foreach (var p in props)
+            {
+                if (!helper.CheckIgnore(p))
+                {
+                    var columnName = helper.ColumnName(p);
+
+                    if (p.GetValue(model) != null || helper.CheckCreatedDate(p))
+                    {
+                        if (count >= 1)
+                        {
+                            str.Append(", ");
+                        }
+
+                        if (helper.CheckCreatedDate(p))
+                        {
+                            str.Append("DATE('NOW')");
+                        }
+                        else
+                        {
+                            str.Append(":" + p.Name);
+                        }
+                        count++;
+                    }
+                }
+            }
+            str.Append(" )");
+
+            return str.ToString().TrimEnd();
+
         }
     }
 }

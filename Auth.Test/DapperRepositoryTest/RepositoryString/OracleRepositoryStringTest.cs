@@ -160,10 +160,17 @@ namespace DapperRepository.Test
 
 
             t.Id = 1;
-            string expect2 = "DELETE FROM TableNm WHERE 1=1 AND TableNm.Id = :Id";
+            string expect2 = "DELETE FROM TableNm WHERE 1=1 AND Id = :Id";
             var actual2 = RepositoryString.DeleteStr(t);
 
             Assert.Equal(expect2, actual2);
+
+
+            t.Data = "test1";
+            string expect3 = "DELETE FROM TableNm WHERE 1=1 AND Id = :Id AND Data = :Data";
+            var actual3 = RepositoryString.DeleteStr(t);
+
+            Assert.Equal(expect3, actual3);
         }
 
         [Fact]
@@ -173,17 +180,17 @@ namespace DapperRepository.Test
 
             OracleRepositoryString RepositoryString = new OracleRepositoryString(helper);
             TestClass t = new TestClass();
-            string expect = "DELETE FROM TableNm WHERE 1=1 AND TableNm.Id < 1";
+            string expect = "DELETE FROM TableNm WHERE 1=1 AND Id < 1";
             var actual = RepositoryString.DeleteStr(t, new ParamColumn("Id", "<", "1"));
 
             Assert.Equal(expect, actual);
 
-            string expect2 = "DELETE FROM TableNm WHERE 1=1 AND TableNm.Id >= 6 AND TableNm.Data BETWEEN 1 AND 8";
+            string expect2 = "DELETE FROM TableNm WHERE 1=1 AND Id >= 6 AND Data BETWEEN 1 AND 8";
             var actual2 = RepositoryString.DeleteStr(t, new ParamColumn(nameof(t.Id), ">=", "6"), new ParamColumn(nameof(t.Data), "between", "1", "8"));
 
             Assert.Equal(expect2, actual2);
 
-            string expect3 = "DELETE FROM TableNm WHERE 1=1 AND TableNm.RealColumnName IS NOT NULL AND TableNm.Data LIKE '%TEST'";
+            string expect3 = "DELETE FROM TableNm WHERE 1=1 AND RealColumnName IS NOT NULL AND Data LIKE '%TEST'";
             var actual3 = RepositoryString.DeleteStr(t, new ParamColumn(helper.ColumnName(t, nameof(t.FakeNameColumn)), "is not null"), new ParamColumn(nameof(t.Data), "like", "'%TEST'"));
 
             Assert.Equal(expect3, actual3);

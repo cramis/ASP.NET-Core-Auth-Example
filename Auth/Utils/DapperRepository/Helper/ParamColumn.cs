@@ -6,11 +6,6 @@ namespace DapperRepository
         public string COLUMN_NAME { get; set; }
         public string[] Operator_values { get; set; }
 
-        public ParamColumn()
-        {
-
-        }
-
         public ParamColumn(string COLUMN_NAME, string Operator, params string[] Operator_values)
         {
             this.COLUMN_NAME = COLUMN_NAME;
