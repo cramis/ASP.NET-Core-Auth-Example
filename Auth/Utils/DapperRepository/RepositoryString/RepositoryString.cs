@@ -8,7 +8,7 @@ using DapperRepositoryException;
 
 namespace DapperRepository
 {
-    interface IRepositoryString
+    public interface IRepositoryString
     {
         string SelectString<T>(T model);
 
@@ -460,6 +460,14 @@ namespace DapperRepository
     public class OracleRepositoryString : BaseRepositoryString
     {
         public OracleRepositoryString(IORMHelper helper) : base(helper, ":", "SYSDATE")
+        {
+        }
+    }
+
+
+    public class SqliteRepositoryString : BaseRepositoryString
+    {
+        public SqliteRepositoryString(IORMHelper helper) : base(helper, ":", "DATE('NOW')")
         {
         }
     }
