@@ -17,6 +17,7 @@ namespace DapperRepository
         string UpdateStr<T>(T model);
         string MergeStr<T>(T model);
         string DeleteStr<T>(T model);
+        string DeleteStr<T>(T model, params ParamColumn[] args);
 
 
     }
@@ -26,7 +27,7 @@ namespace DapperRepository
         private readonly IORMHelper helper;
 
         private readonly string ParamMark = ":";
-        private readonly string DBNowDatefunction = "sysdate";
+        private readonly string DBNowDatefunction = "SYSDATE";
 
 
         public BaseRepositoryString(IORMHelper helper)
@@ -164,7 +165,7 @@ namespace DapperRepository
 
                         if (helper.CheckCreatedDate(p))
                         {
-                            str.Append("sysdate");
+                            str.Append(DBNowDatefunction);
                         }
                         else
                         {
@@ -194,7 +195,7 @@ namespace DapperRepository
 
                 if (IsPosibleNullValue || p.GetValue(model) != null || helper.CheckLastModifiedDate(p))
                 {
-                    if (helper.CheckCreatedDate(p))
+                    if (helper.CheckCreatedDate(p) || helper.CheckKey(p))
                     {
                         continue;
                     }
@@ -255,9 +256,135 @@ namespace DapperRepository
             return UpdateStr(model, false);
         }
 
+        public string MergeStr<T>(T model, bool IsPosibleNullValue)
+        {
+            StringBuilder str = new StringBuilder("");
+            string tableName = helper.GetTableName(model.GetType());
+            var props = model.GetType().GetProperties();
+
+            long count = 0;
+
+            str.AppendFormat("MERGE INTO {0} USING DUAL ON ( ", tableName);
+
+            foreach (var p in props)
+            {
+                var columnName = helper.ColumnName(p);
+
+                if (helper.CheckKey(p) && p.GetValue(model) != null)
+                {
+                    if (count >= 1)
+                    {
+                        str.Append(" AND ");
+                    }
+                    str.AppendFormat("{0} = {1}{2}", columnName, ParamMark, p.Name);
+                    count++;
+                }
+
+            }
+
+            if (count < 1)
+            {
+                throw new PkNotFoundException("Update를 할때에는 Primary Key에 반드시 값이 존재해야 합니다.");
+            }
+
+
+            str.Append(" ) WHEN MATCHED THEN UPDATE SET ");
+
+            count = 0;
+            foreach (var p in props)
+            {
+                var columnName = helper.ColumnName(p);
+
+                if (IsPosibleNullValue || p.GetValue(model) != null || helper.CheckLastModifiedDate(p))
+                {
+                    if (helper.CheckCreatedDate(p) || helper.CheckKey(p))
+                    {
+                        continue;
+                    }
+
+                    if (!helper.CheckIgnore(p))
+                    {
+                        if (count >= 1)
+                        {
+                            str.Append(", ");
+                        }
+
+                        if (helper.CheckLastModifiedDate(p))
+                        {
+                            str.AppendFormat("{0} = {1}", columnName, DBNowDatefunction);
+                        }
+                        else if (p.GetValue(model) == null)
+                        {
+                            str.AppendFormat("{0} = NULL", columnName);
+                        }
+                        else if (helper.CheckCreatedDate(p) == false)
+                        {
+                            str.AppendFormat("{0} = {1}{2}", columnName, ParamMark, p.Name);
+                        }
+                        count++;
+                    }
+                }
+            }
+
+            str.Append(" WHEN NOT MATCHED THEN INSERT ( ");
+
+            count = 0;
+            foreach (var p in props)
+            {
+                if (!helper.CheckIgnore(p))
+                {
+                    var columnName = helper.ColumnName(p);
+
+                    if (p.GetValue(model) != null || helper.CheckCreatedDate(p))
+                    {
+                        if (count >= 1)
+                        {
+                            str.Append(", ");
+                        }
+                        str.Append(columnName);
+                        count++;
+                    }
+                }
+
+            }
+
+            str.AppendFormat(" ) VALUES ( ");
+
+            count = 0;
+            foreach (var p in props)
+            {
+                if (!helper.CheckIgnore(p))
+                {
+                    var columnName = helper.ColumnName(p);
+
+                    if (p.GetValue(model) != null || helper.CheckCreatedDate(p))
+                    {
+                        if (count >= 1)
+                        {
+                            str.Append(", ");
+                        }
+
+                        if (helper.CheckCreatedDate(p))
+                        {
+                            str.Append(DBNowDatefunction);
+                        }
+                        else
+                        {
+                            str.Append(ParamMark + p.Name);
+                        }
+                        count++;
+                    }
+                }
+            }
+            str.Append(" )");
+
+            return str.ToString().TrimEnd();
+
+        }
+
         public string MergeStr<T>(T model)
         {
-            throw new NotImplementedException();
+            return MergeStr(model, false);
         }
         public string DeleteStr<T>(T model)
         {
@@ -332,7 +459,7 @@ namespace DapperRepository
 
     public class OracleRepositoryString : BaseRepositoryString
     {
-        public OracleRepositoryString(IORMHelper helper) : base(helper, ":", "sysdate")
+        public OracleRepositoryString(IORMHelper helper) : base(helper, ":", "SYSDATE")
         {
         }
     }

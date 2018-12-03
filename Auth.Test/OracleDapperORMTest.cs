@@ -183,7 +183,7 @@ namespace DapperRepository.Test
             t.Id = 1;
             t.Data = "test";
 
-            string expect2 = "INSERT INTO TableNm ( Id, Data, CDate ) VALUES ( :Id, :Data, sysdate )";
+            string expect2 = "INSERT INTO TableNm ( Id, Data, CDate ) VALUES ( :Id, :Data, SYSDATE )";
             var actual2 = RepositoryString.InsertStr(t);
 
             Assert.Equal(expect2, actual2);
@@ -191,7 +191,7 @@ namespace DapperRepository.Test
 
             t.FakeNameColumn = "test";
 
-            string expect3 = "INSERT INTO TableNm ( Id, Data, RealColumnName, CDate ) VALUES ( :Id, :Data, :FakeNameColumn, sysdate )";
+            string expect3 = "INSERT INTO TableNm ( Id, Data, RealColumnName, CDate ) VALUES ( :Id, :Data, :FakeNameColumn, SYSDATE )";
             var actual3 = RepositoryString.InsertStr(t);
 
             Assert.Equal(expect3, actual3);
@@ -211,20 +211,53 @@ namespace DapperRepository.Test
 
             t.Data = "test";
 
-            string expect2 = "UPDATE TableNm SET Id = :Id, Data = :Data, LDate = sysdate WHERE Id = :Id";
+            string expect2 = "UPDATE TableNm SET Data = :Data, LDate = SYSDATE WHERE Id = :Id";
             var actual2 = RepositoryString.UpdateStr(t);
 
             Assert.Equal(expect2, actual2);
 
-            string expect3 = "UPDATE TableNm SET Id = :Id, Data = :Data, RealColumnName = NULL, LDate = sysdate WHERE Id = :Id";
+            string expect3 = "UPDATE TableNm SET Data = :Data, RealColumnName = NULL, LDate = SYSDATE WHERE Id = :Id";
             var actual3 = RepositoryString.UpdateStr(t, true);
 
             Assert.Equal(expect3, actual3);
 
             t.FakeNameColumn = "test";
 
-            string expect4 = "UPDATE TableNm SET Id = :Id, Data = :Data, RealColumnName = :FakeNameColumn, LDate = sysdate WHERE Id = :Id";
+            string expect4 = "UPDATE TableNm SET Data = :Data, RealColumnName = :FakeNameColumn, LDate = SYSDATE WHERE Id = :Id";
             var actual4 = RepositoryString.UpdateStr(t);
+
+            Assert.Equal(expect4, actual4);
+        }
+
+
+        [Fact]
+        public void MergeString_값_병합하기()
+        {
+            OracleORMHelper helper = new OracleORMHelper();
+
+            OracleRepositoryString RepositoryString = new OracleRepositoryString(helper);
+            TestClass t = new TestClass();
+
+            Assert.Throws<PkNotFoundException>(() => RepositoryString.MergeStr(t));
+
+            t.Id = 1;
+
+            t.Data = "test";
+
+            string expect2 = "MERGE INTO TableNm USING DUAL ON ( Id = :Id ) WHEN MATCHED THEN UPDATE SET Data = :Data, LDate = SYSDATE WHEN NOT MATCHED THEN INSERT ( Id, Data, CDate ) VALUES ( :Id, :Data, SYSDATE )";
+            var actual2 = RepositoryString.MergeStr(t);
+
+            Assert.Equal(expect2, actual2);
+
+            string expect3 = "MERGE INTO TableNm USING DUAL ON ( Id = :Id ) WHEN MATCHED THEN UPDATE SET Data = :Data, RealColumnName = NULL, LDate = SYSDATE WHEN NOT MATCHED THEN INSERT ( Id, Data, CDate ) VALUES ( :Id, :Data, SYSDATE )";
+            var actual3 = RepositoryString.MergeStr(t, true);
+
+            Assert.Equal(expect3, actual3);
+
+            t.FakeNameColumn = "test";
+
+            string expect4 = "MERGE INTO TableNm USING DUAL ON ( Id = :Id ) WHEN MATCHED THEN UPDATE SET Data = :Data, RealColumnName = :FakeNameColumn, LDate = SYSDATE WHEN NOT MATCHED THEN INSERT ( Id, Data, RealColumnName, CDate ) VALUES ( :Id, :Data, :FakeNameColumn, SYSDATE )";
+            var actual4 = RepositoryString.MergeStr(t);
 
             Assert.Equal(expect4, actual4);
         }
