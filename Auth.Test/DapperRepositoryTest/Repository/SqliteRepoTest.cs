@@ -16,17 +16,7 @@ namespace DapperRepository.Test
 {
     public class SqliteRepoTest
     {
-        public static string DbFile
-        {
-            // get { return Environment.CurrentDirectory + "\\SimpleDb.sqlite"; }
-            get { return Directory.GetCurrentDirectory() + "\\SimpleDb.sqlite"; }
 
-        }
-
-        public static SQLiteConnection SimpleDbConnection()
-        {
-            return new SQLiteConnection("Data Source=" + DbFile);
-        }
 
         private IORMHelper helper;
         private IRepositoryString repoString;
@@ -47,7 +37,7 @@ namespace DapperRepository.Test
 
             this.repo = new BaseRepository(repoString);
 
-            this.repo.SetConnection(SimpleDbConnection());
+            this.repo.SetConnection(new ConnectionFactory().Connection("sqlite"));
         }
 
         [Fact]
@@ -134,6 +124,10 @@ namespace DapperRepository.Test
             t1.Id = 3;
             t1.Data = "test4";
             result = repo.Merge(t1);
+
+            Assert.Equal(1, result);
+
+            result = repo.Delete(new TestClass() { Id = 3 });
 
             Assert.Equal(1, result);
 

@@ -468,7 +468,7 @@ namespace DapperRepository
     public class SqliteRepositoryString : BaseRepositoryString
     {
         private readonly IORMHelper helper;
-        public SqliteRepositoryString(IORMHelper helper) : base(helper, ":", "DATE('NOW')")
+        public SqliteRepositoryString(IORMHelper helper) : base(helper, ":", "DATETIME('NOW','LOCALTIME')")
         {
             this.helper = helper;
         }
@@ -529,7 +529,7 @@ namespace DapperRepository
 
                         if (helper.CheckCreatedDate(p))
                         {
-                            str.Append("DATE('NOW')");
+                            str.Append("DATETIME('NOW','LOCALTIME')");
                         }
                         else
                         {

@@ -59,14 +59,6 @@ namespace DapperRepository
             this.logger = Log.Logger;
         }
 
-
-        // public BaseRepository(IDbConnection conn, IRepositoryString repoString, ILogger logger)
-        // {
-        //     this.connection = conn;
-        //     this.repoString = repoString;
-        //     this.logger = logger;
-        // }
-
         public void SetConnection(IDbConnection conn)
         {
             this.connection = conn;
@@ -77,9 +69,7 @@ namespace DapperRepository
         {
             try
             {
-
                 var list = connection.Query<T>(repoString.SelectString(model), model).ToList();
-
                 logger.Debug(this.LogMessage(repoString.SelectString(model), JsonConvert.SerializeObject(model)));
                 return list;
             }
@@ -93,52 +83,115 @@ namespace DapperRepository
 
         public async Task<List<T>> GetListAsync<T>(T model)
         {
-            var list = await connection.QueryAsync<T>(repoString.SelectString(model), model);
+            try
+            {
+                var list = await connection.QueryAsync<T>(repoString.SelectString(model), model);
 
-            return list.ToList();
+                logger.Debug(this.LogMessage(repoString.SelectString(model), JsonConvert.SerializeObject(model)));
+                return list.ToList();
+            }
+            catch (Exception ex)
+            {
+                logger.Error(this.LogMessage(repoString.SelectString(model), JsonConvert.SerializeObject(model)));
+                throw ex;
+            }
         }
 
         public List<T> GetList<T>(T model, params ParamColumn[] args)
         {
-            var list = connection.Query<T>(repoString.SelectString(model, args), model).ToList();
+            try
+            {
+                var list = connection.Query<T>(repoString.SelectString(model, args), model).ToList();
 
-            return list;
+                logger.Debug(this.LogMessage(repoString.SelectString(model), JsonConvert.SerializeObject(model)));
+                return list;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(this.LogMessage(repoString.SelectString(model), JsonConvert.SerializeObject(model)));
+                throw ex;
+            }
         }
 
         public async Task<List<T>> GetListAsync<T>(T model, params ParamColumn[] args)
         {
-            var list = await connection.QueryAsync<T>(repoString.SelectString(model, args), model);
+            try
+            {
+                var list = await connection.QueryAsync<T>(repoString.SelectString(model, args), model);
 
-            return list.ToList();
+                logger.Debug(this.LogMessage(repoString.SelectString(model), JsonConvert.SerializeObject(model)));
+                return list.ToList();
+            }
+            catch (Exception ex)
+            {
+                logger.Error(this.LogMessage(repoString.SelectString(model), JsonConvert.SerializeObject(model)));
+                throw ex;
+            }
         }
 
         // GetItem
 
         public T GetItem<T>(T model)
         {
-            var item = connection.QuerySingleOrDefault<T>(repoString.SelectString(model), model);
+            try
+            {
+                var item = connection.QuerySingleOrDefault<T>(repoString.SelectString(model), model);
 
-            return item;
+                logger.Debug(this.LogMessage(repoString.SelectString(model), JsonConvert.SerializeObject(model)));
+                return item;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(this.LogMessage(repoString.SelectString(model), JsonConvert.SerializeObject(model)));
+                throw ex;
+            }
         }
 
         public async Task<T> GetItemAsync<T>(T model)
         {
-            var item = await connection.QuerySingleOrDefaultAsync<T>(repoString.SelectString(model), model);
+            try
+            {
+                var item = await connection.QuerySingleOrDefaultAsync<T>(repoString.SelectString(model), model);
 
-            return item;
+                logger.Debug(this.LogMessage(repoString.SelectString(model), JsonConvert.SerializeObject(model)));
+                return item;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(this.LogMessage(repoString.SelectString(model), JsonConvert.SerializeObject(model)));
+                throw ex;
+            }
         }
         public T GetItem<T>(T model, params ParamColumn[] args)
         {
-            var item = connection.QuerySingleOrDefault<T>(repoString.SelectString(model, args), model);
+            try
+            {
+                var item = connection.QuerySingleOrDefault<T>(repoString.SelectString(model, args), model);
 
-            return item;
+                logger.Debug(this.LogMessage(repoString.SelectString(model), JsonConvert.SerializeObject(model)));
+                return item;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(this.LogMessage(repoString.SelectString(model), JsonConvert.SerializeObject(model)));
+                throw ex;
+            }
         }
 
         public async Task<T> GetItemAsync<T>(T model, params ParamColumn[] args)
         {
-            var item = await connection.QuerySingleOrDefaultAsync<T>(repoString.SelectString(model, args), model);
+            try
+            {
+                var item = await connection.QuerySingleOrDefaultAsync<T>(repoString.SelectString(model, args), model);
 
-            return item;
+                logger.Debug(this.LogMessage(repoString.SelectString(model), JsonConvert.SerializeObject(model)));
+                return item;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(this.LogMessage(repoString.SelectString(model), JsonConvert.SerializeObject(model)));
+                throw ex;
+            }
         }
 
         // Insert
@@ -268,7 +321,6 @@ namespace DapperRepository
                 throw ex;
             }
         }
-
 
         private string LogMessage(string sql, string args)
         {
