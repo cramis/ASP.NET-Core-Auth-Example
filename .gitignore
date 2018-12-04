@@ -12,6 +12,9 @@
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
+# DB ConnectionFactory
+ConnectionFactory.cs
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
