@@ -59,7 +59,7 @@ namespace DapperRepository
 
                 if (p.GetValue(model) != null)
                 {
-                    str.AppendFormat("AND {0}.{1} = :{2}", tableName, columnName, p.Name);
+                    str.AppendFormat("AND {0}.{1} = {2}{3}", tableName, columnName, ParamMark, p.Name);
                     count++;
                 }
 
@@ -460,6 +460,13 @@ namespace DapperRepository
     public class OracleRepositoryString : BaseRepositoryString
     {
         public OracleRepositoryString(IORMHelper helper) : base(helper, ":", "SYSDATE")
+        {
+        }
+    }
+
+    public class MysqlRepositoryString : BaseRepositoryString
+    {
+        public MysqlRepositoryString(IORMHelper helper) : base(helper, "@", "NOW()")
         {
         }
     }

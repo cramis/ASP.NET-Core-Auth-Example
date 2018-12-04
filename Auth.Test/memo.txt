@@ -1,0 +1,4 @@
+GRANT select ON test.test TO test; 
+GRANT update ON test.test TO test; 
+GRANT insert ON test.test TO test; 
+GRANT delete ON test.test TO test;

@@ -23,4 +23,5 @@ namespace DapperRepository.Test
         public DateTime? LDate { get; set; }
 
     }
+
 }
