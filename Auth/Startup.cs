@@ -15,7 +15,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-
+using DapperRepository;
+using Moq;
+using Serilog;
 
 namespace Auth
 {
@@ -72,11 +74,16 @@ namespace Auth
 
             // configure DI for application services
 
-            services.AddScoped<ITest, Test>();
 
             services.AddScoped<IApiKeyValiationService, TestApiKeyValiationService>();
             services.AddScoped<ILoginService, TestLoginService>();
             services.AddScoped<ITokenService, TestTokenService>();
+
+
+            services.AddScoped<IDapperRepository, BaseRepository>();
+
+            services.AddScoped<IRepositoryString, SqliteRepositoryString>();
+            services.AddScoped<IORMHelper, BaseORMHelper>();
 
             // services.AddScoped<IUserService, UserService>();
         }

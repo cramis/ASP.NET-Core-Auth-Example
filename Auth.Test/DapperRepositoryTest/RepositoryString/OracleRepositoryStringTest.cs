@@ -17,14 +17,14 @@ namespace DapperRepository.Test
 
             OracleRepositoryString RepositoryString = new OracleRepositoryString(helper);
             TestClass t = new TestClass();
-            string expect = "SELECT * FROM TableNm WHERE 1=1";
+            string expect = "SELECT * FROM Test WHERE 1=1";
             var actual = RepositoryString.SelectString(t);
 
             Assert.Equal(expect, actual);
 
 
             t.Id = 1;
-            string expect2 = "SELECT * FROM TableNm WHERE 1=1 AND TableNm.Id = :Id";
+            string expect2 = "SELECT * FROM Test WHERE 1=1 AND Test.Id = :Id";
             var actual2 = RepositoryString.SelectString(t);
 
             Assert.Equal(expect2, actual2);
@@ -37,17 +37,17 @@ namespace DapperRepository.Test
 
             OracleRepositoryString RepositoryString = new OracleRepositoryString(helper);
             TestClass t = new TestClass();
-            string expect = "SELECT * FROM TableNm WHERE 1=1 AND TableNm.Id < 1";
+            string expect = "SELECT * FROM Test WHERE 1=1 AND Test.Id < 1";
             var actual = RepositoryString.SelectString(t, new ParamColumn("Id", "<", "1"));
 
             Assert.Equal(expect, actual);
 
-            string expect2 = "SELECT * FROM TableNm WHERE 1=1 AND TableNm.Id >= 6 AND TableNm.Data BETWEEN 1 AND 8";
+            string expect2 = "SELECT * FROM Test WHERE 1=1 AND Test.Id >= 6 AND Test.Data BETWEEN 1 AND 8";
             var actual2 = RepositoryString.SelectString(t, new ParamColumn(nameof(t.Id), ">=", "6"), new ParamColumn(nameof(t.Data), "between", "1", "8"));
 
             Assert.Equal(expect2, actual2);
 
-            string expect3 = "SELECT * FROM TableNm WHERE 1=1 AND TableNm.RealColumnName IS NOT NULL AND TableNm.Data LIKE '%TEST'";
+            string expect3 = "SELECT * FROM Test WHERE 1=1 AND Test.RealColumnName IS NOT NULL AND Test.Data LIKE '%TEST'";
             var actual3 = RepositoryString.SelectString(t, new ParamColumn(helper.ColumnName(t, nameof(t.FakeNameColumn)), "is not null"), new ParamColumn(nameof(t.Data), "like", "'%TEST'"));
 
             Assert.Equal(expect3, actual3);
@@ -66,7 +66,7 @@ namespace DapperRepository.Test
             t.Id = 1;
             t.Data = "test";
 
-            string expect2 = "INSERT INTO TableNm ( Id, Data, CDate ) VALUES ( :Id, :Data, SYSDATE )";
+            string expect2 = "INSERT INTO Test ( Id, Data, CDate ) VALUES ( :Id, :Data, SYSDATE )";
             var actual2 = RepositoryString.InsertStr(t);
 
             Assert.Equal(expect2, actual2);
@@ -74,7 +74,7 @@ namespace DapperRepository.Test
 
             t.FakeNameColumn = "test";
 
-            string expect3 = "INSERT INTO TableNm ( Id, Data, RealColumnName, CDate ) VALUES ( :Id, :Data, :FakeNameColumn, SYSDATE )";
+            string expect3 = "INSERT INTO Test ( Id, Data, RealColumnName, CDate ) VALUES ( :Id, :Data, :FakeNameColumn, SYSDATE )";
             var actual3 = RepositoryString.InsertStr(t);
 
             Assert.Equal(expect3, actual3);
@@ -94,19 +94,19 @@ namespace DapperRepository.Test
 
             t.Data = "test";
 
-            string expect2 = "UPDATE TableNm SET Data = :Data, LDate = SYSDATE WHERE Id = :Id";
+            string expect2 = "UPDATE Test SET Data = :Data, LDate = SYSDATE WHERE Id = :Id";
             var actual2 = RepositoryString.UpdateStr(t);
 
             Assert.Equal(expect2, actual2);
 
-            string expect3 = "UPDATE TableNm SET Data = :Data, RealColumnName = NULL, LDate = SYSDATE WHERE Id = :Id";
+            string expect3 = "UPDATE Test SET Data = :Data, RealColumnName = NULL, LDate = SYSDATE WHERE Id = :Id";
             var actual3 = RepositoryString.UpdateStr(t, true);
 
             Assert.Equal(expect3, actual3);
 
             t.FakeNameColumn = "test";
 
-            string expect4 = "UPDATE TableNm SET Data = :Data, RealColumnName = :FakeNameColumn, LDate = SYSDATE WHERE Id = :Id";
+            string expect4 = "UPDATE Test SET Data = :Data, RealColumnName = :FakeNameColumn, LDate = SYSDATE WHERE Id = :Id";
             var actual4 = RepositoryString.UpdateStr(t);
 
             Assert.Equal(expect4, actual4);
@@ -127,19 +127,19 @@ namespace DapperRepository.Test
 
             t.Data = "test";
 
-            string expect2 = "MERGE INTO TableNm USING DUAL ON ( Id = :Id ) WHEN MATCHED THEN UPDATE SET Data = :Data, LDate = SYSDATE WHEN NOT MATCHED THEN INSERT ( Id, Data, CDate ) VALUES ( :Id, :Data, SYSDATE )";
+            string expect2 = "MERGE INTO Test USING DUAL ON ( Id = :Id ) WHEN MATCHED THEN UPDATE SET Data = :Data, LDate = SYSDATE WHEN NOT MATCHED THEN INSERT ( Id, Data, CDate ) VALUES ( :Id, :Data, SYSDATE )";
             var actual2 = RepositoryString.MergeStr(t);
 
             Assert.Equal(expect2, actual2);
 
-            string expect3 = "MERGE INTO TableNm USING DUAL ON ( Id = :Id ) WHEN MATCHED THEN UPDATE SET Data = :Data, RealColumnName = NULL, LDate = SYSDATE WHEN NOT MATCHED THEN INSERT ( Id, Data, CDate ) VALUES ( :Id, :Data, SYSDATE )";
+            string expect3 = "MERGE INTO Test USING DUAL ON ( Id = :Id ) WHEN MATCHED THEN UPDATE SET Data = :Data, RealColumnName = NULL, LDate = SYSDATE WHEN NOT MATCHED THEN INSERT ( Id, Data, CDate ) VALUES ( :Id, :Data, SYSDATE )";
             var actual3 = RepositoryString.MergeStr(t, true);
 
             Assert.Equal(expect3, actual3);
 
             t.FakeNameColumn = "test";
 
-            string expect4 = "MERGE INTO TableNm USING DUAL ON ( Id = :Id ) WHEN MATCHED THEN UPDATE SET Data = :Data, RealColumnName = :FakeNameColumn, LDate = SYSDATE WHEN NOT MATCHED THEN INSERT ( Id, Data, RealColumnName, CDate ) VALUES ( :Id, :Data, :FakeNameColumn, SYSDATE )";
+            string expect4 = "MERGE INTO Test USING DUAL ON ( Id = :Id ) WHEN MATCHED THEN UPDATE SET Data = :Data, RealColumnName = :FakeNameColumn, LDate = SYSDATE WHEN NOT MATCHED THEN INSERT ( Id, Data, RealColumnName, CDate ) VALUES ( :Id, :Data, :FakeNameColumn, SYSDATE )";
             var actual4 = RepositoryString.MergeStr(t);
 
             Assert.Equal(expect4, actual4);
@@ -153,21 +153,21 @@ namespace DapperRepository.Test
 
             OracleRepositoryString RepositoryString = new OracleRepositoryString(helper);
             TestClass t = new TestClass();
-            string expect = "DELETE FROM TableNm WHERE 1=1";
+            string expect = "DELETE FROM Test WHERE 1=1";
             var actual = RepositoryString.DeleteStr(t);
 
             Assert.Equal(expect, actual);
 
 
             t.Id = 1;
-            string expect2 = "DELETE FROM TableNm WHERE 1=1 AND Id = :Id";
+            string expect2 = "DELETE FROM Test WHERE 1=1 AND Id = :Id";
             var actual2 = RepositoryString.DeleteStr(t);
 
             Assert.Equal(expect2, actual2);
 
 
             t.Data = "test1";
-            string expect3 = "DELETE FROM TableNm WHERE 1=1 AND Id = :Id AND Data = :Data";
+            string expect3 = "DELETE FROM Test WHERE 1=1 AND Id = :Id AND Data = :Data";
             var actual3 = RepositoryString.DeleteStr(t);
 
             Assert.Equal(expect3, actual3);
@@ -180,17 +180,17 @@ namespace DapperRepository.Test
 
             OracleRepositoryString RepositoryString = new OracleRepositoryString(helper);
             TestClass t = new TestClass();
-            string expect = "DELETE FROM TableNm WHERE 1=1 AND Id < 1";
+            string expect = "DELETE FROM Test WHERE 1=1 AND Id < 1";
             var actual = RepositoryString.DeleteStr(t, new ParamColumn("Id", "<", "1"));
 
             Assert.Equal(expect, actual);
 
-            string expect2 = "DELETE FROM TableNm WHERE 1=1 AND Id >= 6 AND Data BETWEEN 1 AND 8";
+            string expect2 = "DELETE FROM Test WHERE 1=1 AND Id >= 6 AND Data BETWEEN 1 AND 8";
             var actual2 = RepositoryString.DeleteStr(t, new ParamColumn(nameof(t.Id), ">=", "6"), new ParamColumn(nameof(t.Data), "between", "1", "8"));
 
             Assert.Equal(expect2, actual2);
 
-            string expect3 = "DELETE FROM TableNm WHERE 1=1 AND RealColumnName IS NOT NULL AND Data LIKE '%TEST'";
+            string expect3 = "DELETE FROM Test WHERE 1=1 AND RealColumnName IS NOT NULL AND Data LIKE '%TEST'";
             var actual3 = RepositoryString.DeleteStr(t, new ParamColumn(helper.ColumnName(t, nameof(t.FakeNameColumn)), "is not null"), new ParamColumn(nameof(t.Data), "like", "'%TEST'"));
 
             Assert.Equal(expect3, actual3);

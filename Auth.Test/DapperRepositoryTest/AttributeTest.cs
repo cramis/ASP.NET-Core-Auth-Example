@@ -16,7 +16,7 @@ namespace DapperRepository.Test
 
             OracleORMHelper helper = new OracleORMHelper();
             TestClass t = new TestClass();
-            string expect = "TableNm";
+            string expect = "Test";
             var actual = helper.GetTableName(t.GetType());
 
             Assert.Equal(expect, actual);

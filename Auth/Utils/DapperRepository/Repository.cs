@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace DapperRepository
 {
     public interface IDapperRepository
     {
+        void SetConnection(IDbConnection conn);
         // GetList
         List<T> GetList<T>(T model);
         Task<List<T>> GetListAsync<T>(T model);
@@ -49,22 +51,43 @@ namespace DapperRepository
 
         private IRepositoryString repoString;
 
-        ILogger logger;
+        Serilog.ILogger logger;
+
+        public BaseRepository(IRepositoryString repoString)
+        {
+            this.repoString = repoString;
+            this.logger = Log.Logger;
+        }
 
 
-        public BaseRepository(IDbConnection conn, IRepositoryString repoString, ILogger logger)
+        // public BaseRepository(IDbConnection conn, IRepositoryString repoString, ILogger logger)
+        // {
+        //     this.connection = conn;
+        //     this.repoString = repoString;
+        //     this.logger = logger;
+        // }
+
+        public void SetConnection(IDbConnection conn)
         {
             this.connection = conn;
-            this.repoString = repoString;
-            this.logger = logger;
         }
 
         // GetList
         public List<T> GetList<T>(T model)
         {
-            var list = connection.Query<T>(repoString.SelectString(model), model).ToList();
+            try
+            {
 
-            return list;
+                var list = connection.Query<T>(repoString.SelectString(model), model).ToList();
+
+                logger.Debug(this.LogMessage(repoString.SelectString(model), JsonConvert.SerializeObject(model)));
+                return list;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(this.LogMessage(repoString.SelectString(model), JsonConvert.SerializeObject(model)));
+                throw ex;
+            }
         }
 
 
@@ -124,12 +147,12 @@ namespace DapperRepository
             try
             {
                 var result = connection.Execute(repoString.InsertStr(model), model);
-                logger.LogDebug(this.LogMessage(repoString.InsertStr(model), JsonConvert.SerializeObject(model)));
+                logger.Debug(this.LogMessage(repoString.InsertStr(model), JsonConvert.SerializeObject(model)));
                 return result;
             }
             catch (Exception ex)
             {
-                logger.LogError(this.LogMessage(repoString.InsertStr(model), JsonConvert.SerializeObject(model)));
+                logger.Error(this.LogMessage(repoString.InsertStr(model), JsonConvert.SerializeObject(model)));
                 throw ex;
             }
         }
@@ -139,12 +162,12 @@ namespace DapperRepository
             try
             {
                 var result = await connection.ExecuteAsync(repoString.InsertStr(model), model);
-                logger.LogDebug(this.LogMessage(repoString.InsertStr(model), JsonConvert.SerializeObject(model)));
+                logger.Debug(this.LogMessage(repoString.InsertStr(model), JsonConvert.SerializeObject(model)));
                 return result;
             }
             catch (Exception ex)
             {
-                logger.LogError(this.LogMessage(repoString.InsertStr(model), JsonConvert.SerializeObject(model)));
+                logger.Error(this.LogMessage(repoString.InsertStr(model), JsonConvert.SerializeObject(model)));
                 throw ex;
             }
         }
@@ -156,12 +179,12 @@ namespace DapperRepository
             try
             {
                 var result = connection.Execute(repoString.UpdateStr(model), model);
-                logger.LogDebug(this.LogMessage(repoString.UpdateStr(model), JsonConvert.SerializeObject(model)));
+                logger.Debug(this.LogMessage(repoString.UpdateStr(model), JsonConvert.SerializeObject(model)));
                 return result;
             }
             catch (Exception ex)
             {
-                logger.LogError(this.LogMessage(repoString.UpdateStr(model), JsonConvert.SerializeObject(model)));
+                logger.Error(this.LogMessage(repoString.UpdateStr(model), JsonConvert.SerializeObject(model)));
                 throw ex;
             }
         }
@@ -171,12 +194,12 @@ namespace DapperRepository
             try
             {
                 var result = await connection.ExecuteAsync(repoString.UpdateStr(model), model);
-                logger.LogDebug(this.LogMessage(repoString.UpdateStr(model), JsonConvert.SerializeObject(model)));
+                logger.Debug(this.LogMessage(repoString.UpdateStr(model), JsonConvert.SerializeObject(model)));
                 return result;
             }
             catch (Exception ex)
             {
-                logger.LogError(this.LogMessage(repoString.UpdateStr(model), JsonConvert.SerializeObject(model)));
+                logger.Error(this.LogMessage(repoString.UpdateStr(model), JsonConvert.SerializeObject(model)));
                 throw ex;
             }
         }
@@ -188,13 +211,13 @@ namespace DapperRepository
             try
             {
                 var result = connection.Execute(repoString.MergeStr(model), model);
-                logger.LogDebug(this.LogMessage(repoString.MergeStr(model), JsonConvert.SerializeObject(model)));
+                logger.Debug(this.LogMessage(repoString.MergeStr(model), JsonConvert.SerializeObject(model)));
 
                 return result;
             }
             catch (Exception ex)
             {
-                logger.LogError(this.LogMessage(repoString.MergeStr(model), JsonConvert.SerializeObject(model)));
+                logger.Error(this.LogMessage(repoString.MergeStr(model), JsonConvert.SerializeObject(model)));
 
                 throw ex;
             }
@@ -205,12 +228,12 @@ namespace DapperRepository
             try
             {
                 var result = await connection.ExecuteAsync(repoString.MergeStr(model), model);
-                logger.LogDebug(this.LogMessage(repoString.MergeStr(model), JsonConvert.SerializeObject(model)));
+                logger.Debug(this.LogMessage(repoString.MergeStr(model), JsonConvert.SerializeObject(model)));
                 return result;
             }
             catch (Exception ex)
             {
-                logger.LogError(this.LogMessage(repoString.MergeStr(model), JsonConvert.SerializeObject(model)));
+                logger.Error(this.LogMessage(repoString.MergeStr(model), JsonConvert.SerializeObject(model)));
                 throw ex;
             }
         }
@@ -221,12 +244,12 @@ namespace DapperRepository
             try
             {
                 var result = connection.Execute(repoString.DeleteStr(model), model);
-                logger.LogDebug(this.LogMessage(repoString.DeleteStr(model), JsonConvert.SerializeObject(model)));
+                logger.Debug(this.LogMessage(repoString.DeleteStr(model), JsonConvert.SerializeObject(model)));
                 return result;
             }
             catch (Exception ex)
             {
-                logger.LogError(this.LogMessage(repoString.DeleteStr(model), JsonConvert.SerializeObject(model)));
+                logger.Error(this.LogMessage(repoString.DeleteStr(model), JsonConvert.SerializeObject(model)));
                 throw ex;
             }
         }
@@ -236,12 +259,12 @@ namespace DapperRepository
             try
             {
                 var result = await connection.ExecuteAsync(repoString.DeleteStr(model), model);
-                logger.LogDebug(this.LogMessage(repoString.DeleteStr(model), JsonConvert.SerializeObject(model)));
+                logger.Debug(this.LogMessage(repoString.DeleteStr(model), JsonConvert.SerializeObject(model)));
                 return result;
             }
             catch (Exception ex)
             {
-                logger.LogError(this.LogMessage(repoString.DeleteStr(model), JsonConvert.SerializeObject(model)));
+                logger.Error(this.LogMessage(repoString.DeleteStr(model), JsonConvert.SerializeObject(model)));
                 throw ex;
             }
         }

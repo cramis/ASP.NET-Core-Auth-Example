@@ -17,10 +17,9 @@ namespace Auth.Controllers
     [ApiController]
     public class ValuesController : ControllerBase
     {
-        ITest _test;
-        public ValuesController(ITest test)
+        public ValuesController()
         {
-            _test = test;
+
         }
         // GET api/values
         [HttpGet]

@@ -42,10 +42,12 @@ namespace DapperRepository.Test
 
             this.repoString = new SqliteRepositoryString(helper);
 
-            logger = Mock.Of<ILogger<SqliteRepoTest>>();
 
 
-            this.repo = new BaseRepository(SimpleDbConnection(), repoString, logger);
+
+            this.repo = new BaseRepository(repoString);
+
+            this.repo.SetConnection(SimpleDbConnection());
         }
 
         [Fact]

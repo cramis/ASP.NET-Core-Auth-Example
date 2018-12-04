@@ -1,9 +1,10 @@
 using System;
+using DapperRepository;
 
-namespace DapperRepository.Test
+namespace Auth.Entities
 {
     [Table("Test")]
-    public class TestClass
+    public class TestModel
     {
         [KeyColumn]
         public int? Id { get; set; }
