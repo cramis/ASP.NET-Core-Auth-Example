@@ -8,7 +8,7 @@ namespace Auth.Services
     public class ConnectionFactory
     {
         IDbConnection conn = null;
-        private string localSqliteConnectionString = "Data Source=" + Directory.GetCurrentDirectory() + "\\SimpleDb.sqlite";
+        private string localSqliteConnectionString = "Data Source=" + Directory.GetCurrentDirectory() + "\\Db\\SimpleDb.sqlite";
         public IDbConnection Connection(string connection)
         {
 
