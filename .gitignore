@@ -12,8 +12,6 @@
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
-# DB ConnectionFactory
-ConnectionFactory.cs
 
 # Build results
 [Dd]ebug/
@@ -29,6 +27,7 @@ Bin/
 obj/
 Obj/
 Logs/
+Config/
 
 # Visual Studio 2015 cache/options directory
 .vs/
