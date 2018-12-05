@@ -14,10 +14,8 @@ using System.Transactions;
 
 namespace DapperRepository.Test
 {
-    public class SqliteRepoTest
+    public class RepoTest
     {
-
-
         private IORMHelper helper;
         private IRepositoryString repoString;
         private IDapperRepository repo;
@@ -25,19 +23,26 @@ namespace DapperRepository.Test
         private ILogger logger;
 
 
-        public SqliteRepoTest()
+        public RepoTest()
         {
+            string dbStr = "sqlite";
 
-            this.helper = new BaseORMHelper();
+            switch (dbStr)
+            {
+                case "sqlite":
+                    this.helper = new BaseORMHelper();
+                    this.repoString = new SqliteRepositoryString(helper);
+                    this.repo = new BaseRepository(repoString);
+                    this.repo.SetConnection(new ConnectionFactory().Connection("sqlite"));
+                    break;
+                case "mysql":
+                    this.helper = new BaseORMHelper();
+                    this.repoString = new MysqlRepositoryString(helper);
+                    this.repo = new BaseRepository(repoString);
+                    this.repo.SetConnection(new ConnectionFactory().Connection("mysql"));
+                    break;
+            }
 
-            this.repoString = new SqliteRepositoryString(helper);
-
-
-
-
-            this.repo = new BaseRepository(repoString);
-
-            this.repo.SetConnection(new ConnectionFactory().Connection("sqlite"));
         }
 
         [Fact]
@@ -125,14 +130,13 @@ namespace DapperRepository.Test
             t1.Data = "test4";
             result = repo.Merge(t1);
 
-            Assert.Equal(1, result);
+            var item = repo.GetItem(new TestClass() { Id = 3 });
+
+            Assert.Equal("test4", item.Data);
 
             result = repo.Delete(new TestClass() { Id = 3 });
 
             Assert.Equal(1, result);
-
-
-
         }
     }
 }

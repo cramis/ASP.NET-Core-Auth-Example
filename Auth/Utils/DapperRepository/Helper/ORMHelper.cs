@@ -160,6 +160,10 @@ namespace DapperRepository
     {
 
     }
+    public class MysqlORMHelper : BaseORMHelper
+    {
+
+    }
 
 
 }

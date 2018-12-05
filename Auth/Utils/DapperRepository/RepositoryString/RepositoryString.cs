@@ -466,8 +466,118 @@ namespace DapperRepository
 
     public class MysqlRepositoryString : BaseRepositoryString
     {
+        private readonly IORMHelper helper;
         public MysqlRepositoryString(IORMHelper helper) : base(helper, "@", "NOW()")
         {
+            this.helper = helper;
+        }
+
+        public override string MergeStr<T>(T model, bool IsPosibleNullValue)
+        {
+            StringBuilder str = new StringBuilder("");
+            string tableName = helper.GetTableName(model.GetType());
+            var props = model.GetType().GetProperties();
+
+            long count = 0;
+            long pk_Count = 0;
+            str.AppendFormat("INSERT INTO {0} ( ", tableName);
+
+            foreach (var p in props)
+            {
+                if (!helper.CheckIgnore(p))
+                {
+                    var columnName = helper.ColumnName(p);
+
+                    if (p.GetValue(model) != null || helper.CheckCreatedDate(p))
+                    {
+                        if (helper.CheckKey(p))
+                        {
+                            pk_Count++;
+                        }
+                        if (count >= 1)
+                        {
+                            str.Append(", ");
+                        }
+                        str.Append(columnName);
+                        count++;
+                    }
+                }
+            }
+
+            if (pk_Count < 1)
+            {
+                throw new PkNotFoundException("Insert를 할때에는 Primary Key가 한개 이상 존재해야 합니다.");
+            }
+
+            str.Append(" ) VALUES ( ");
+
+            count = 0;
+            foreach (var p in props)
+            {
+                if (!helper.CheckIgnore(p))
+                {
+                    var columnName = helper.ColumnName(p);
+
+                    if (p.GetValue(model) != null || helper.CheckCreatedDate(p))
+                    {
+                        if (count >= 1)
+                        {
+                            str.Append(", ");
+                        }
+
+                        if (helper.CheckCreatedDate(p))
+                        {
+                            str.Append("NOW()");
+                        }
+                        else
+                        {
+                            str.Append("@" + p.Name);
+                        }
+                        count++;
+                    }
+                }
+            }
+            str.Append(" ) ON DUPLICATE KEY UPDATE ");
+
+            count = 0;
+            foreach (var p in props)
+            {
+                var columnName = helper.ColumnName(p);
+
+
+                if (IsPosibleNullValue || p.GetValue(model) != null || helper.CheckLastModifiedDate(p))
+                {
+                    if (helper.CheckCreatedDate(p) || helper.CheckKey(p))
+                    {
+                        continue;
+                    }
+
+                    if (!helper.CheckIgnore(p))
+                    {
+                        if (count >= 1)
+                        {
+                            str.Append(", ");
+                        }
+
+                        if (helper.CheckLastModifiedDate(p))
+                        {
+                            str.AppendFormat("{0} = {1}", columnName, "NOW()");
+                        }
+                        else if (p.GetValue(model) == null)
+                        {
+                            str.AppendFormat("{0} = NULL", columnName);
+                        }
+                        else if (helper.CheckCreatedDate(p) == false)
+                        {
+                            str.AppendFormat("{0} = {1}{2}", columnName, "@", p.Name);
+                        }
+                        count++;
+                    }
+                }
+            }
+
+            return str.ToString().TrimEnd();
+
         }
     }
 
