@@ -2,3 +2,26 @@ GRANT select ON test.test TO test;
 GRANT update ON test.test TO test; 
 GRANT insert ON test.test TO test; 
 GRANT delete ON test.test TO test;
+
+
+CREATE TABLE Test(
+    Id int PRIMARY KEY not null,
+    Data TEXT,
+    RealColumnName TEXT,
+    CDate DATETIME,
+    LDate DATETIME
+);
+
+
+CREATE TABLE Test
+  (CONSTRAINT PK_Test PRIMARY KEY (Id)
+                          USING INDEX
+                          STORAGE (PCTINCREASE 0) TABLESPACE SHAI,
+      Id         NUMBER(5)   NOT NULL,
+      Data          VARCHAR2(45), 
+      RealColumnName       VARCHAR2(45), 
+      CDate   DATE             , 
+      LDate    DATE            
+       ) TABLESPACE SHA
+  pctfree 10 pctused 80
+  storage ( initial 2m next 1m pctincrease 0) ;

@@ -48,7 +48,7 @@ namespace DapperRepository
             StringBuilder str = new StringBuilder("");
             string tableName = helper.GetTableName(model.GetType());
             str.AppendFormat("SELECT * FROM {0}", tableName);
-            str.Append(" WHERE 1=1 ");
+            str.Append(" WHERE 1=1");
 
             var props = model.GetType().GetProperties();
 
@@ -59,7 +59,7 @@ namespace DapperRepository
 
                 if (p.GetValue(model) != null)
                 {
-                    str.AppendFormat("AND {0}.{1} = {2}{3}", tableName, columnName, ParamMark, p.Name);
+                    str.AppendFormat(" AND {0}.{1} = {2}{3}", tableName, columnName, ParamMark, p.Name);
                     count++;
                 }
 
@@ -73,7 +73,7 @@ namespace DapperRepository
             StringBuilder str = new StringBuilder("");
             string tableName = helper.GetTableName(model.GetType());
             str.AppendFormat("SELECT * FROM {0}", tableName);
-            str.Append(" WHERE 1=1 ");
+            str.Append(" WHERE 1=1");
 
             var props = model.GetType().GetProperties();
 
@@ -90,20 +90,20 @@ namespace DapperRepository
                 switch (a.Operator.ToUpper())
                 {
                     case "BETWEEN":
-                        operatorAndvalues.AppendFormat("BETWEEN {0} AND {1} ", a.Operator_values[0], a.Operator_values[1]);
+                        operatorAndvalues.AppendFormat("BETWEEN {0} AND {1}", a.Operator_values[0], a.Operator_values[1]);
                         break;
                     case "IS NULL":
-                        operatorAndvalues.Append("IS NULL ");
+                        operatorAndvalues.Append("IS NULL");
                         break;
                     case "IS NOT NULL":
-                        operatorAndvalues.Append("IS NOT NULL ");
+                        operatorAndvalues.Append("IS NOT NULL");
                         break;
                     default:
-                        operatorAndvalues.AppendFormat("{0} {1} ", a.Operator.ToUpper(), a.Operator_values[0]);
+                        operatorAndvalues.AppendFormat("{0} {1}", a.Operator.ToUpper(), a.Operator_values[0]);
                         break;
                 }
 
-                str.AppendFormat("AND {0}.{1} {2}", tableName, a.COLUMN_NAME, operatorAndvalues);
+                str.AppendFormat(" AND {0}.{1} {2}", tableName, a.COLUMN_NAME, operatorAndvalues);
                 count++;
 
             }
@@ -391,7 +391,7 @@ namespace DapperRepository
             StringBuilder str = new StringBuilder("");
             string tableName = helper.GetTableName(model.GetType());
             str.AppendFormat("DELETE FROM {0}", tableName);
-            str.Append(" WHERE 1=1 ");
+            str.Append(" WHERE 1=1");
 
             var props = model.GetType().GetProperties();
 
@@ -402,7 +402,7 @@ namespace DapperRepository
 
                 if (p.GetValue(model) != null)
                 {
-                    str.AppendFormat("AND {0} = {1}{2} ", columnName, ParamMark, p.Name);
+                    str.AppendFormat(" AND {0} = {1}{2}", columnName, ParamMark, p.Name);
                     count++;
                 }
 
@@ -416,7 +416,7 @@ namespace DapperRepository
             StringBuilder str = new StringBuilder("");
             string tableName = helper.GetTableName(model.GetType());
             str.AppendFormat("DELETE FROM {0}", tableName);
-            str.Append(" WHERE 1=1 ");
+            str.Append(" WHERE 1=1");
 
             var props = model.GetType().GetProperties();
 
@@ -433,20 +433,20 @@ namespace DapperRepository
                 switch (a.Operator.ToUpper())
                 {
                     case "BETWEEN":
-                        operatorAndvalues.AppendFormat("BETWEEN {0} AND {1} ", a.Operator_values[0], a.Operator_values[1]);
+                        operatorAndvalues.AppendFormat("BETWEEN {0} AND {1}", a.Operator_values[0], a.Operator_values[1]);
                         break;
                     case "IS NULL":
-                        operatorAndvalues.Append("IS NULL ");
+                        operatorAndvalues.Append("IS NULL");
                         break;
                     case "IS NOT NULL":
-                        operatorAndvalues.Append("IS NOT NULL ");
+                        operatorAndvalues.Append("IS NOT NULL");
                         break;
                     default:
-                        operatorAndvalues.AppendFormat("{0} {1} ", a.Operator.ToUpper(), a.Operator_values[0]);
+                        operatorAndvalues.AppendFormat("{0} {1}", a.Operator.ToUpper(), a.Operator_values[0]);
                         break;
                 }
 
-                str.AppendFormat("AND {0} {1}", a.COLUMN_NAME, operatorAndvalues);
+                str.AppendFormat(" AND {0} {1}", a.COLUMN_NAME, operatorAndvalues);
                 count++;
 
             }
