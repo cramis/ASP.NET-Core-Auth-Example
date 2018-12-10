@@ -75,8 +75,8 @@ namespace Auth
             // configure DI for application services
 
 
-            services.AddScoped<IApiKeyValiationService, TestApiKeyValiationService>();
-            services.AddScoped<ILoginService, TestLoginService>();
+            services.AddScoped<IApiKeyValiationService, SqliteApiKeyValiationService>();
+            services.AddScoped<ILoginService, SqliteLoginService>();
             services.AddScoped<ITokenService, TestTokenService>();
 
 

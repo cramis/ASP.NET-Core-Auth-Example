@@ -4,6 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Auth.Entities;
+using DapperRepository;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Auth.Services
@@ -33,6 +34,48 @@ namespace Auth.Services
             {
                 throw new System.Exception("User Not Found");
             }
+
+            return user;
+        }
+    }
+
+    public class SqliteLoginService : ILoginService
+    {
+
+        public IDapperRepository repo { get; }
+
+        public SqliteLoginService(IDapperRepository repo)
+        {
+            this.repo = repo;
+            this.repo.SetConnection(new ConnectionFactory().Connection("sqlite"));
+        }
+
+        public User Login(string id, string password)
+        {
+
+            UserInfo userInfo = new UserInfo();
+            User user = new User();
+
+            user.isAuth = false;
+
+            userInfo.Id = id;
+
+            var loginUser = this.repo.GetItem(userInfo);
+
+            if (loginUser == null)
+            {
+                throw new System.Exception("User Not Found");
+            }
+
+            if (loginUser.Password != password)
+            {
+                throw new System.Exception("Password is Not Correnct.");
+            }
+
+
+            user.Id = loginUser.Id;
+            user.UserName = loginUser.UserName;
+            user.isAuth = true;
 
             return user;
         }

@@ -1,7 +1,9 @@
 using System;
+using DapperRepository;
 
 namespace Auth.Entities
 {
+    [Table("ApiUserInfo")]
     public class ApiUserInfo
     {
         // 인증키 부여 구현 방법
@@ -13,13 +15,18 @@ namespace Auth.Entities
         // - 제공자 연락처(대표전화전화)
         // - 최초 발급일자
         // - 허가자
-        public string Id { get; set; }
+
+        [KeyColumn]
+        public int? Id { get; set; }
+        public string ApiKey { get; set; }
         public string ServiceName { get; set; }
         public string ServicePurpose { get; set; }
         public string ServiceUrl { get; set; }
         public string UserName { get; set; }
         public string UserContact { get; set; }
-        public DateTime CreateDate { get; set; }
+
+        [CreatedDate]
+        public DateTime? CreateDate { get; set; }
         public string Authorizer { get; set; }
 
     }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Auth.Entities;
+using DapperRepository;
 
 namespace Auth.Services
 {
@@ -17,7 +18,8 @@ namespace Auth.Services
         {
             infos.Add(new ApiUserInfo()
             {
-                Id = "apikey1",
+                Id = 1,
+                ApiKey = "apikey1",
                 ServiceName = "서비스1",
                 ServicePurpose = "서비스목적1",
                 ServiceUrl = "https://test1.donga.ac.kr",
@@ -29,7 +31,8 @@ namespace Auth.Services
 
             infos.Add(new ApiUserInfo()
             {
-                Id = "apikey2",
+                Id = 2,
+                ApiKey = "apikey2",
                 ServiceName = "서비스2",
                 ServicePurpose = "서비스목적2",
                 ServiceUrl = "https://test2.donga.ac.kr",
@@ -41,7 +44,8 @@ namespace Auth.Services
 
             infos.Add(new ApiUserInfo()
             {
-                Id = "apikey3",
+                Id = 3,
+                ApiKey = "apikey3",
                 ServiceName = "서비스3",
                 ServicePurpose = "서비스목적3",
                 ServiceUrl = "https://test3.donga.ac.kr",
@@ -54,7 +58,30 @@ namespace Auth.Services
         public ApiUserInfo Validate(string apiKey)
         {
 
-            var apiUser = infos.Find(x => x.Id == apiKey);
+            var apiUser = infos.Find(x => x.ApiKey == apiKey);
+
+            if (apiUser == null)
+            {
+                throw new System.Exception("apiKey Not Valid");
+            }
+
+            return apiUser;
+        }
+    }
+
+    public class SqliteApiKeyValiationService : IApiKeyValiationService
+    {
+        public IDapperRepository repo { get; }
+
+        public SqliteApiKeyValiationService(IDapperRepository repo)
+        {
+            this.repo = repo;
+            this.repo.SetConnection(new ConnectionFactory().Connection("sqlite"));
+        }
+        public ApiUserInfo Validate(string apiKey)
+        {
+
+            var apiUser = this.repo.GetItem(new ApiUserInfo() { ApiKey = apiKey });
 
             if (apiUser == null)
             {
