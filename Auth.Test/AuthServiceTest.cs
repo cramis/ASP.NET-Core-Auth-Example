@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Xunit;
 
 using DapperRepository;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Auth.Test
 {
@@ -14,7 +15,7 @@ namespace Auth.Test
 
         private ILoginService loginService;
         private IApiKeyValiationService apiUserValidService;
-        private ITokenService tokenService;
+        private TestTokenService tokenService;
 
         public AuthServiceTest()
         {
@@ -53,20 +54,53 @@ namespace Auth.Test
             Assert.Equal(expect, apiUserInfo.ServiceUrl);
         }
 
-        // [Fact]
-        // public void 인증토큰발행_서비스_실행()
-        // {
+        [Fact]
+        public void 인증토큰발행_서비스_실행()
+        {
 
-        //     User user = loginService.Login("1", "2222");
-        //     ApiUserInfo apiUserInfo = apiUserValidService.Validate("apikey1");
+            User user = loginService.Login("1", "2222");
+            ApiUserInfo apiUserInfo = apiUserValidService.Validate("apikey1");
 
-        //     string expect = "https://apis.donga.ac.kr/auth";
 
-        //     var tokenInfo = tokenService.GetToken(user, apiUserInfo);
+            var tokenInfo = tokenService.GetToken(user, apiUserInfo);
 
-        //     Assert.Equal(expect, tokenInfo.JwtToken);
+            string oldjwtToken = tokenInfo.JwtToken;
 
-        // }
+            string oldRefreshToken = tokenInfo.RefreshToken;
+
+            var oldPrincipal = tokenService.GetPrincipalFromExpiredToken(oldjwtToken);
+
+            Assert.Equal(tokenService.__RefreshToken, oldRefreshToken);
+
+            Assert.Equal("test1", oldPrincipal.FindFirst(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value);
+            Assert.Equal("1", oldPrincipal.FindFirst(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name").Value);
+            Assert.Equal("https://apis.donga.ac.kr/auth", oldPrincipal.FindFirst(x => x.Type == "iss").Value);
+            Assert.Equal("https://test1.donga.ac.kr", oldPrincipal.FindFirst(x => x.Type == "aud").Value);
+
+            // 잘못된 RefreshToken 값을 넣으면 예외 Throw..
+            Assert.Throws<SecurityTokenException>(() => tokenService.RefreshToken(oldjwtToken, "WrongRefreshToken"));
+
+
+
+            var newTokenInfo = tokenService.RefreshToken(oldjwtToken, oldRefreshToken);
+
+
+            string newJwtToken = newTokenInfo.JwtToken;
+            string newRefreshToken = newTokenInfo.RefreshToken;
+
+
+            Assert.NotEqual(oldjwtToken, newJwtToken);
+
+            Assert.NotEqual(oldRefreshToken, newRefreshToken);
+
+            var newPrincipal = tokenService.GetPrincipalFromExpiredToken(newJwtToken);
+
+            Assert.Equal("test1", newPrincipal.FindFirst(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value);
+            Assert.Equal("1", newPrincipal.FindFirst(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name").Value);
+            Assert.Equal("https://apis.donga.ac.kr/auth", newPrincipal.FindFirst(x => x.Type == "iss").Value);
+            Assert.Equal("https://test1.donga.ac.kr", newPrincipal.FindFirst(x => x.Type == "aud").Value);
+
+        }
 
 
         // 테스트가 끝나면 리소스 반납

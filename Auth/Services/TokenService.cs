@@ -6,6 +6,7 @@ using System.Text;
 using Auth.Entities;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
 
 namespace Auth.Services
 {
@@ -13,15 +14,27 @@ namespace Auth.Services
     {
         TokenInfo GetToken(User user, ApiUserInfo apiUserInfo);
 
-        string CreateRefreshToken();
+        TokenInfo RefreshToken(string token, string refreshToken);
+
+
     }
+
+
     public class TestTokenService : ITokenService
     {
+
+        public string __RefreshToken { get; set; }
+
+        public DateTime NowDate { get; set; }
+
+        public string Jti { get; set; }
 
         private readonly AppSettings _appSettings;
         public TestTokenService(IOptions<AppSettings> appSettings)
         {
             _appSettings = appSettings.Value;
+            this.NowDate = DateTime.UtcNow;
+            this.Jti = Guid.NewGuid().ToString();
         }
 
         public TokenInfo GetToken(User user, ApiUserInfo apiUserInfo)
@@ -31,10 +44,13 @@ namespace Auth.Services
             {
                 TokenInfo tokenInfo = new TokenInfo();
 
-                tokenInfo.JwtToken = this.CreatJwtToken(user, apiUserInfo);
+                tokenInfo.JwtToken = this.CreatJwtToken(user.Id, user.UserName, apiUserInfo.ServiceUrl);
                 tokenInfo.UserId = user.Id;
                 tokenInfo.UserName = user.UserName;
                 tokenInfo.RefreshToken = this.CreateRefreshToken();
+
+                // RefreshToken 업데이트
+                this.UpdateRefreshToken(user.Id, user.UserName, tokenInfo.RefreshToken);
 
                 return tokenInfo;
             }
@@ -45,17 +61,84 @@ namespace Auth.Services
 
         }
 
-        public string CreateRefreshToken()
+        public TokenInfo RefreshToken(string token, string refreshToken)
         {
-            var refreshToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-            return refreshToken;
+            var principal = GetPrincipalFromExpiredToken(token);
+
+            // 토큰 값에서 해당하는 id, userName, audience를 가지고 옴
+            var id = principal.Identity.Name;
+            var userName = principal.FindFirst(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+            var audience = principal.FindFirst(x => x.Type == "aud")?.Value;
+
+            var savedRefreshToken = this.GetRefreshToken(id, audience); //retrieve the refresh token from a data store
+            if (savedRefreshToken != refreshToken)
+                throw new SecurityTokenException("Invalid refresh token");
+
+            var newJwtToken = this.CreatJwtToken(id, userName, audience);
+            var newRefreshToken = this.CreateRefreshToken();
+            this.UpdateRefreshToken(id, audience, newRefreshToken);
+
+            TokenInfo tokenInfo = new TokenInfo();
+
+            tokenInfo.JwtToken = newJwtToken;
+            tokenInfo.UserId = id;
+            tokenInfo.UserName = userName;
+            tokenInfo.RefreshToken = newRefreshToken;
+
+            return tokenInfo;
+
+
         }
 
-        private string CreatJwtToken(User user, ApiUserInfo apiUserInfo)
+        private void UpdateRefreshToken(string id, string audience, string refreshToken)
+        {
+            // 저장되어 있는 RefreshToken을 대체한다.
+            __RefreshToken = refreshToken;
+        }
+
+        private string GetRefreshToken(string id, string audience)
+        {
+            // 저장되어 있는 refreshToken을 가지고 옴
+            return __RefreshToken;
+        }
+
+        public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+        {
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateAudience = false, //you might want to validate the audience and issuer depending on your use case
+                ValidateIssuer = false,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_appSettings.JwtKey)),
+                ValidateLifetime = false //here we are saying that we don't care about the token's expiration date
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            SecurityToken securityToken;
+            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);
+            var jwtSecurityToken = securityToken as JwtSecurityToken;
+            if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                throw new SecurityTokenException("Invalid token");
+
+            return principal;
+        }
+
+        public string CreateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomNumber);
+                return Convert.ToBase64String(randomNumber);
+            }
+
+        }
+
+        private string CreatJwtToken(string id, string userName, string audience)
         {
 
             // return null if user not found
-            if (user == null)
+            if (string.IsNullOrWhiteSpace(id))
                 return null;
 
             // - JWT Token : 인증용 토큰
@@ -71,8 +154,8 @@ namespace Auth.Services
 
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
-                new Claim(ClaimTypes.Name, user.Id),
+                new Claim(JwtRegisteredClaimNames.Sub, userName),
+                new Claim(ClaimTypes.Name, id),
                 new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString())
 
             };
@@ -83,7 +166,7 @@ namespace Auth.Services
 
             var token = new JwtSecurityToken(
               _appSettings.JwtIssuer,
-              apiUserInfo.ServiceUrl,
+              audience,
               claims,
               expires: expires,
               signingCredentials: creds
@@ -94,4 +177,6 @@ namespace Auth.Services
         }
 
     }
+
+
 }
