@@ -3,15 +3,19 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
+using Auth.Config;
 using Auth.Entities;
 using DapperRepository;
+using Flurl;
+using Flurl.Http;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Auth.Services
 {
     public interface ILoginService
     {
-        User Login(string id, string password);
+        Task<User> Login(string id, string password);
     }
     public class TestLoginService : ILoginService
     {
@@ -26,7 +30,7 @@ namespace Auth.Services
 
         }
 
-        public User Login(string id, string password)
+        public async Task<User> Login(string id, string password)
         {
             var user = users.Find(x => x.Id == id);
 
@@ -50,7 +54,7 @@ namespace Auth.Services
             this.repo.SetConnection(new ConnectionFactory().Connection("sqlite"));
         }
 
-        public User Login(string id, string password)
+        public async Task<User> Login(string id, string password)
         {
 
             UserInfo userInfo = new UserInfo();
@@ -60,7 +64,7 @@ namespace Auth.Services
 
             userInfo.Id = id;
 
-            var loginUser = this.repo.GetItem(userInfo);
+            var loginUser = await this.repo.GetItemAsync(userInfo);
 
             if (loginUser == null)
             {
@@ -76,6 +80,53 @@ namespace Auth.Services
             user.Id = loginUser.Id;
             user.UserName = loginUser.UserName;
             user.isAuth = true;
+
+            return user;
+        }
+    }
+
+    public class SSOApiLoginService : ILoginService
+    {
+
+
+        public async Task<User> Login(string id, string password)
+        {
+            var ipAddress = SSOApiConfig.Ip;
+
+            var token = await SSOApiConfig.GetToken
+            .PostUrlEncodedAsync(new
+            {
+                AccessKey = SSOApiConfig.AccessKey,
+                CallerSite = SSOApiConfig.CallerSite,
+                ClientIP = ipAddress
+            }).ReceiveJson<string>();
+
+            var ssoResult = await SSOApiConfig.EmpLogin
+            .PostUrlEncodedAsync(new
+            {
+                Token = token,
+                AccessKey = SSOApiConfig.AccessKey,
+                CallerSite = SSOApiConfig.CallerSite,
+                EmpNoOrAccount = id,
+                Password = password,
+                ClientIP = ipAddress
+            }).ReceiveJson<SSOResult>();
+
+            var result = await SSOApiConfig.GetUserinfo
+            .PostUrlEncodedAsync(new
+            {
+                Token = token,
+                AccessKey = SSOApiConfig.AccessKey,
+                CallerSite = SSOApiConfig.CallerSite,
+                ssokey = ssoResult.Message,
+                ClientIP = ipAddress
+            }).ReceiveJson<SSOResult>();
+
+            User user = new User();
+
+            user.isAuth = true;
+            user.Id = result.loginUser.UserID;
+            user.UserName = result.loginUser.UserName;
 
             return user;
         }

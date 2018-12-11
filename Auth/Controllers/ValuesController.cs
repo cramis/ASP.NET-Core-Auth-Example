@@ -6,6 +6,8 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Auth.Entities;
 using Auth.Services;
+using Flurl;
+using Flurl.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -21,6 +23,28 @@ namespace Auth.Controllers
         {
 
         }
+
+        [HttpGet("flurl")]
+        public async Task<object> Flurl()
+        {
+            //     id: "cramis",
+            //      password: "1111",
+            //      apikey: "dsfjkv43hcxcvjnm4fbj"
+            var result = await "http://localhost:5000/api/auth"
+            .PostJsonAsync(new
+            {
+                id = "cramis",
+                password = "1111",
+                apikey = "dsfjkv43hcxcvjnm4fbj"
+            })
+            .ReceiveJson<TokenInfo>();
+
+
+
+
+            return result;
+        }
+
         // GET api/values
         [HttpGet]
         [Authorize]

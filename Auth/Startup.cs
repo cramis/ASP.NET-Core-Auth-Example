@@ -76,7 +76,7 @@ namespace Auth
 
 
             services.AddScoped<IApiKeyValiationService, SqliteApiKeyValiationService>();
-            services.AddScoped<ILoginService, SqliteLoginService>();
+            services.AddScoped<ILoginService, SSOApiLoginService>();
             services.AddScoped<ITokenService, SqliteTokenService>();
 
 
