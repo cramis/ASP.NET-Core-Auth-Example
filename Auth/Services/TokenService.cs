@@ -7,6 +7,7 @@ using Auth.Entities;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
+using DapperRepository;
 
 namespace Auth.Services
 {
@@ -20,24 +21,18 @@ namespace Auth.Services
     }
 
 
-    public class TestTokenService : ITokenService
+    public class BaseTokenService : ITokenService
     {
 
         public string __RefreshToken { get; set; }
 
-        public DateTime NowDate { get; set; }
-
-        public string Jti { get; set; }
-
         private readonly AppSettings _appSettings;
-        public TestTokenService(IOptions<AppSettings> appSettings)
+        public BaseTokenService(IOptions<AppSettings> appSettings)
         {
             _appSettings = appSettings.Value;
-            this.NowDate = DateTime.UtcNow;
-            this.Jti = Guid.NewGuid().ToString();
         }
 
-        public TokenInfo GetToken(User user, ApiUserInfo apiUserInfo)
+        public virtual TokenInfo GetToken(User user, ApiUserInfo apiUserInfo)
         {
 
             try
@@ -50,7 +45,7 @@ namespace Auth.Services
                 tokenInfo.RefreshToken = this.CreateRefreshToken();
 
                 // RefreshToken 업데이트
-                this.UpdateRefreshToken(user.Id, user.UserName, tokenInfo.RefreshToken);
+                this.UpdateRefreshToken(user.Id, apiUserInfo.ServiceUrl, tokenInfo.RefreshToken);
 
                 return tokenInfo;
             }
@@ -61,7 +56,7 @@ namespace Auth.Services
 
         }
 
-        public TokenInfo RefreshToken(string token, string refreshToken)
+        public virtual TokenInfo RefreshToken(string token, string refreshToken)
         {
             var principal = GetPrincipalFromExpiredToken(token);
 
@@ -86,20 +81,6 @@ namespace Auth.Services
             tokenInfo.RefreshToken = newRefreshToken;
 
             return tokenInfo;
-
-
-        }
-
-        private void UpdateRefreshToken(string id, string audience, string refreshToken)
-        {
-            // 저장되어 있는 RefreshToken을 대체한다.
-            __RefreshToken = refreshToken;
-        }
-
-        private string GetRefreshToken(string id, string audience)
-        {
-            // 저장되어 있는 refreshToken을 가지고 옴
-            return __RefreshToken;
         }
 
         public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
@@ -134,7 +115,7 @@ namespace Auth.Services
 
         }
 
-        private string CreatJwtToken(string id, string userName, string audience)
+        protected string CreatJwtToken(string id, string userName, string audience)
         {
 
             // return null if user not found
@@ -176,6 +157,58 @@ namespace Auth.Services
             return jwtToken;
         }
 
+        protected virtual void UpdateRefreshToken(string id, string audience, string refreshToken)
+        {
+            // 저장되어 있는 RefreshToken을 대체한다.
+            __RefreshToken = refreshToken;
+        }
+
+        protected virtual string GetRefreshToken(string id, string audience)
+        {
+            // 저장되어 있는 refreshToken을 가지고 옴
+            return __RefreshToken;
+        }
+
+    }
+
+    public class SqliteTokenService : BaseTokenService
+    {
+        public IDapperRepository repo { get; }
+
+        private readonly AppSettings _appSettings;
+        public SqliteTokenService(IOptions<AppSettings> appSettings) : base(appSettings)
+        {
+        }
+        public SqliteTokenService(IOptions<AppSettings> appSettings, IDapperRepository repo) : base(appSettings)
+        {
+            // _appSettings = appSettings.Value;
+
+            this.repo = repo;
+            this.repo.SetConnection(new ConnectionFactory().Connection("sqlite"));
+        }
+
+        protected override void UpdateRefreshToken(string id, string audience, string refreshToken)
+        {
+            // 저장되어 있는 RefreshToken을 대체한다.
+            var result = this.repo.Merge(new RefreshToken() { Id = id, Audience = audience, Token = refreshToken });
+
+            if (result < 1)
+            {
+                throw new Exception("RefreshToken Can not Update");
+            }
+        }
+
+        protected override string GetRefreshToken(string id, string audience)
+        {
+            // 저장되어 있는 refreshToken을 가지고 옴
+            var refreshToken = this.repo.GetItem(new RefreshToken() { Id = id, Audience = audience }).Token;
+
+            if (string.IsNullOrWhiteSpace(refreshToken))
+            {
+                throw new Exception("RefreshToken Not Found");
+            }
+            return refreshToken;
+        }
     }
 
 

@@ -25,3 +25,11 @@ CREATE TABLE Test
        ) TABLESPACE SHA
   pctfree 10 pctused 80
   storage ( initial 2m next 1m pctincrease 0) ;
+
+  CREATE TABLE `RefreshToken` ( 
+      `Id` TEXT NOT NULL, 
+      `Audience` TEXT NOT NULL, 
+      `Token` TEXT, 
+      CDate   DATE, 
+      PRIMARY KEY(`Id`) )
+

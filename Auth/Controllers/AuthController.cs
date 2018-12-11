@@ -74,6 +74,28 @@ namespace Auth.Controllers
 
         }
 
+        [HttpPost("RefreshToken")]
+        public IActionResult RefreshToken([FromBody] RefreshTokenViewModel refreshToken)
+        {
+            try
+            {
+                var tokenInfo = this.tokenService.RefreshToken(refreshToken.JwtToken, refreshToken.RefreshToken);
+
+                if (tokenInfo == null)
+                {
+                    return NotFound("토큰 재발급에 실패했습니다.");
+                }
+
+                return Ok(tokenInfo);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "인증에 실패했습니다.");
+                return NotFound(ex.Message);
+            }
+
+        }
+
         [Authorize]
         [HttpGet("claims")]
         public object Claims()

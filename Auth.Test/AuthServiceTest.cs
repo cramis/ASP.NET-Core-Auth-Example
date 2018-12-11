@@ -15,7 +15,8 @@ namespace Auth.Test
 
         private ILoginService loginService;
         private IApiKeyValiationService apiUserValidService;
-        private TestTokenService tokenService;
+        private SqliteTokenService tokenService;
+        private IDapperRepository repo;
 
         public AuthServiceTest()
         {
@@ -28,7 +29,8 @@ namespace Auth.Test
 
             loginService = new TestLoginService();
             apiUserValidService = new TestApiKeyValiationService();
-            tokenService = new TestTokenService(appsetting);
+            repo = new BaseRepository(new SqliteRepositoryString(new BaseORMHelper()));
+            tokenService = new SqliteTokenService(appsetting, repo);
 
         }
 
@@ -70,7 +72,7 @@ namespace Auth.Test
 
             var oldPrincipal = tokenService.GetPrincipalFromExpiredToken(oldjwtToken);
 
-            Assert.Equal(tokenService.__RefreshToken, oldRefreshToken);
+
 
             Assert.Equal("test1", oldPrincipal.FindFirst(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value);
             Assert.Equal("1", oldPrincipal.FindFirst(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name").Value);
