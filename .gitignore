@@ -13,6 +13,7 @@
 *.userprefs
 
 
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
@@ -28,6 +29,7 @@ obj/
 Obj/
 Logs/
 Config/
+Db/
 
 # Visual Studio 2015 cache/options directory
 .vs/

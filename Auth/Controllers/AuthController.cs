@@ -48,9 +48,7 @@ namespace Auth.Controllers
                     return NotFound("유효한 apiKey가 아닙니다.");
                 }
 
-                // var user = this.loginService.Login(loginInfo.Id, loginInfo.Password);
-
-                var user = AsyncHelper.RunSync<User>(() => this.loginService.Login(loginInfo.Id, loginInfo.Password));
+                var user = this.loginService.Login(loginInfo.Id, loginInfo.Password);
 
                 logger.Debug("user : {@user}", JsonConvert.SerializeObject(user));
 

@@ -15,7 +15,7 @@ namespace Auth.Services
 {
     public interface ILoginService
     {
-        Task<User> Login(string id, string password);
+        User Login(string id, string password);
     }
     public class TestLoginService : ILoginService
     {
@@ -30,7 +30,7 @@ namespace Auth.Services
 
         }
 
-        public async Task<User> Login(string id, string password)
+        public User Login(string id, string password)
         {
             var user = users.Find(x => x.Id == id);
 
@@ -54,7 +54,7 @@ namespace Auth.Services
             this.repo.SetConnection(new ConnectionFactory().Connection("sqlite"));
         }
 
-        public async Task<User> Login(string id, string password)
+        public User Login(string id, string password)
         {
 
             UserInfo userInfo = new UserInfo();
@@ -64,7 +64,7 @@ namespace Auth.Services
 
             userInfo.Id = id;
 
-            var loginUser = await this.repo.GetItemAsync(userInfo);
+            var loginUser = this.repo.GetItem(userInfo);
 
             if (loginUser == null)
             {
@@ -87,9 +87,12 @@ namespace Auth.Services
 
     public class SSOApiLoginService : ILoginService
     {
+        public User Login(string id, string password)
+        {
+            return AsyncHelper.RunSync<User>(() => this.SSOLogin(id, password));
+        }
 
-
-        public async Task<User> Login(string id, string password)
+        private async Task<User> SSOLogin(string id, string password)
         {
             var ipAddress = SSOApiConfig.Ip;
 

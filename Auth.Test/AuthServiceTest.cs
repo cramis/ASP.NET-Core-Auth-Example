@@ -41,7 +41,7 @@ namespace Auth.Test
             string expect = "test1";
 
             // User user = loginService.Login("1", "2222");
-            User user = AsyncHelper.RunSync<User>(() => loginService.Login("1", "2222"));
+            User user = loginService.Login("1", "2222");
 
             Assert.Equal(expect, user.UserName);
         }
@@ -61,7 +61,7 @@ namespace Auth.Test
         public void 인증토큰발행_서비스_실행()
         {
 
-            User user = AsyncHelper.RunSync<User>(() => loginService.Login("1", "2222"));
+            User user = loginService.Login("1", "2222");
 
             ApiUserInfo apiUserInfo = apiUserValidService.Validate("apikey1");
 
