@@ -18,6 +18,7 @@ namespace Auth.Entities
 
         [KeyColumn]
         public int? Id { get; set; }
+        [RequiredColumn]
         public string ApiKey { get; set; }
         public string ServiceName { get; set; }
         public string ServicePurpose { get; set; }

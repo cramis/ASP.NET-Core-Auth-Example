@@ -91,4 +91,27 @@ namespace Auth.Services
             return apiUser;
         }
     }
+
+    public class OracleApiKeyValiationService : IApiKeyValiationService
+    {
+        public IDapperRepository repo { get; }
+
+        public OracleApiKeyValiationService(IDapperRepository repo)
+        {
+            this.repo = repo;
+            this.repo.SetConnection(new ConnectionFactory().Connection("sqlite"));
+        }
+        public ApiUserInfo Validate(string apiKey)
+        {
+
+            var apiUser = this.repo.GetItem(new ApiUserInfo() { ApiKey = apiKey });
+
+            if (apiUser == null)
+            {
+                throw new System.Exception("apiKey Not Valid");
+            }
+
+            return apiUser;
+        }
+    }
 }
