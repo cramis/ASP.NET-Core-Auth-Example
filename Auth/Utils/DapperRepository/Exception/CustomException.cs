@@ -36,6 +36,24 @@ namespace DapperRepositoryException
         {
         }
     }
+
+
+    public class RequiredValueNotFoundException : Exception
+    {
+        public RequiredValueNotFoundException()
+        {
+        }
+
+        public RequiredValueNotFoundException(string message)
+            : base(message)
+        {
+        }
+
+        public RequiredValueNotFoundException(string message, Exception inner)
+            : base(message, inner)
+        {
+        }
+    }
 }
 
 

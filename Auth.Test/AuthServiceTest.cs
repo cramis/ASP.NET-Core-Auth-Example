@@ -15,7 +15,7 @@ namespace Auth.Test
 
         private ILoginService loginService;
         private IApiKeyValiationService apiUserValidService;
-        private SqliteTokenService tokenService;
+        private BaseTokenService tokenService;
         private IDapperRepository repo;
 
         public AuthServiceTest()
@@ -30,7 +30,7 @@ namespace Auth.Test
             loginService = new TestLoginService();
             apiUserValidService = new TestApiKeyValiationService();
             repo = new BaseRepository(new SqliteRepositoryString(new BaseORMHelper()));
-            tokenService = new SqliteTokenService(appsetting, repo);
+            tokenService = new BaseTokenService(appsetting);
 
         }
 

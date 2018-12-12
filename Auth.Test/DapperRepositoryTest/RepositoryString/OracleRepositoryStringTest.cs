@@ -17,6 +17,8 @@ namespace DapperRepository.Test
 
             OracleRepositoryString RepositoryString = new OracleRepositoryString(helper);
             TestClass t = new TestClass();
+            Test2Class t2 = new Test2Class();
+
             string expect = "SELECT * FROM Test WHERE 1=1";
             var actual = RepositoryString.SelectString(t);
 
@@ -81,6 +83,33 @@ namespace DapperRepository.Test
         }
 
         [Fact]
+        public void InsertString_값_삽입하기_pk_자동생성()
+        {
+            OracleORMHelper helper = new OracleORMHelper();
+
+            OracleRepositoryString RepositoryString = new OracleRepositoryString(helper);
+            Test2Class t2 = new Test2Class();
+
+            Assert.Throws<RequiredValueNotFoundException>(() => RepositoryString.InsertStr(t2));
+
+
+            t2.Data = "test";
+
+            string expect2 = "INSERT INTO Test2 ( Data, CDate ) VALUES ( :Data, SYSDATE )";
+            var actual2 = RepositoryString.InsertStr(t2);
+
+            Assert.Equal(expect2, actual2);
+
+
+            t2.FakeNameColumn = "test";
+
+            string expect3 = "INSERT INTO Test2 ( Data, RealColumnName, CDate ) VALUES ( :Data, :FakeNameColumn, SYSDATE )";
+            var actual3 = RepositoryString.InsertStr(t2);
+
+            Assert.Equal(expect3, actual3);
+        }
+
+        [Fact]
         public void UpdateString_값_수정하기()
         {
             OracleORMHelper helper = new OracleORMHelper();
@@ -108,6 +137,45 @@ namespace DapperRepository.Test
 
             string expect4 = "UPDATE Test SET Data = :Data, RealColumnName = :FakeNameColumn, LDate = SYSDATE WHERE Id = :Id";
             var actual4 = RepositoryString.UpdateStr(t);
+
+            Assert.Equal(expect4, actual4);
+
+            // -- Test2
+
+            expect2 = string.Empty;
+            expect3 = string.Empty;
+            expect4 = string.Empty;
+            actual2 = string.Empty;
+            actual3 = string.Empty;
+            actual4 = string.Empty;
+
+
+            Test2Class t2 = new Test2Class();
+            t2.Data = "test";
+
+            Assert.Throws<PkNotFoundException>(() => RepositoryString.UpdateStr(t2));
+
+            t2.Data = null;
+            t2.Id = 1;
+
+            Assert.Throws<RequiredValueNotFoundException>(() => RepositoryString.UpdateStr(t2));
+
+            t2.Data = "test";
+
+            expect2 = "UPDATE Test2 SET Data = :Data, LDate = SYSDATE WHERE Id = :Id";
+            actual2 = RepositoryString.UpdateStr(t2);
+
+            Assert.Equal(expect2, actual2);
+
+            expect3 = "UPDATE Test2 SET Data = :Data, RealColumnName = NULL, LDate = SYSDATE WHERE Id = :Id";
+            actual3 = RepositoryString.UpdateStr(t2, true);
+
+            Assert.Equal(expect3, actual3);
+
+            t2.FakeNameColumn = "test";
+
+            expect4 = "UPDATE Test2 SET Data = :Data, RealColumnName = :FakeNameColumn, LDate = SYSDATE WHERE Id = :Id";
+            actual4 = RepositoryString.UpdateStr(t2);
 
             Assert.Equal(expect4, actual4);
         }

@@ -139,6 +139,17 @@ namespace DapperRepository
                         str.Append(columnName);
                         count++;
                     }
+                    // AutoCreate이면서 PK인 경우는 pk_Count 자동 증가해줌
+                    if (p.GetValue(model) == null && helper.CheckKey(p) && helper.CheckAutoCreate(p))
+                    {
+                        pk_Count++;
+                    }
+
+                    // 필수 입력인데 값이 안들어가 있는 경우 RequiredValueNotFoundException
+                    if (p.GetValue(model) == null && helper.CheckRequiredColumn(p))
+                    {
+                        throw new RequiredValueNotFoundException(p.GetValue(model) + "에 반드시 값이 들어가야 할 컬럼입니다.");
+                    }
                 }
             }
 
@@ -173,6 +184,12 @@ namespace DapperRepository
                         }
                         count++;
                     }
+
+                    // 필수 입력인데 값이 안들어가 있는 경우 RequiredValueNotFoundException
+                    if (p.GetValue(model) == null && helper.CheckRequiredColumn(p))
+                    {
+                        throw new RequiredValueNotFoundException(p.GetValue(model) + "에 반드시 값이 들어가야 할 컬럼입니다.");
+                    }
                 }
             }
             str.Append(" )");
@@ -191,6 +208,12 @@ namespace DapperRepository
             foreach (var p in props)
             {
                 var columnName = helper.ColumnName(p);
+
+                // 필수 입력인데 값이 안들어가 있는 경우 RequiredValueNotFoundException
+                if (p.GetValue(model) == null && helper.CheckRequiredColumn(p))
+                {
+                    throw new RequiredValueNotFoundException(p.GetValue(model) + "에 반드시 값이 들어가야 할 컬럼입니다.");
+                }
 
 
                 if (IsPosibleNullValue || p.GetValue(model) != null || helper.CheckLastModifiedDate(p))
@@ -222,6 +245,8 @@ namespace DapperRepository
                         count++;
                     }
                 }
+
+
             }
             str.Append(" WHERE ");
 
@@ -324,6 +349,12 @@ namespace DapperRepository
                         count++;
                     }
                 }
+
+                // 필수 입력인데 값이 안들어가 있는 경우 RequiredValueNotFoundException
+                if (p.GetValue(model) == null && helper.CheckRequiredColumn(p))
+                {
+                    throw new RequiredValueNotFoundException(p.GetValue(model) + "에 반드시 값이 들어가야 할 컬럼입니다.");
+                }
             }
 
             str.Append(" WHEN NOT MATCHED THEN INSERT ( ");
@@ -343,6 +374,12 @@ namespace DapperRepository
                         }
                         str.Append(columnName);
                         count++;
+                    }
+
+                    // 필수 입력인데 값이 안들어가 있는 경우 RequiredValueNotFoundException
+                    if (p.GetValue(model) == null && helper.CheckRequiredColumn(p))
+                    {
+                        throw new RequiredValueNotFoundException(p.GetValue(model) + "에 반드시 값이 들어가야 할 컬럼입니다.");
                     }
                 }
 
@@ -373,6 +410,12 @@ namespace DapperRepository
                             str.Append(ParamMark + p.Name);
                         }
                         count++;
+                    }
+
+                    // 필수 입력인데 값이 안들어가 있는 경우 RequiredValueNotFoundException
+                    if (p.GetValue(model) == null && helper.CheckRequiredColumn(p))
+                    {
+                        throw new RequiredValueNotFoundException(p.GetValue(model) + "에 반드시 값이 들어가야 할 컬럼입니다.");
                     }
                 }
             }

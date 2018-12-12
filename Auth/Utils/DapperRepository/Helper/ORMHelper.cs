@@ -11,10 +11,13 @@ namespace DapperRepository
     {
         string GetTableName(Type classType);
         bool CheckKey(PropertyInfo propInfo);
+        bool CheckAutoCreate(PropertyInfo propInfo);
+        bool CheckRequiredColumn(PropertyInfo propInfo);
         string ColumnName(PropertyInfo p);
         bool CheckIgnore(PropertyInfo propInfo);
         bool CheckCreatedDate(PropertyInfo propInfo);
         bool CheckLastModifiedDate(PropertyInfo propInfo);
+
     }
     public class BaseORMHelper : IORMHelper
     {
@@ -50,6 +53,42 @@ namespace DapperRepository
             foreach (var attr in attrs)
             {
                 if (attr is KeyColumn)
+                {
+                    isOK = true;
+                }
+
+            }
+            return isOK;
+        }
+
+        public virtual bool CheckAutoCreate(PropertyInfo propInfo)
+        {
+            bool isOK = false;
+
+            var attrs = propInfo.GetCustomAttributes(true);
+            var name = propInfo.Name;
+
+            foreach (var attr in attrs)
+            {
+                if (attr is AutoCreate)
+                {
+                    isOK = true;
+                }
+
+            }
+            return isOK;
+        }
+
+        public virtual bool CheckRequiredColumn(PropertyInfo propInfo)
+        {
+            bool isOK = false;
+
+            var attrs = propInfo.GetCustomAttributes(true);
+            var name = propInfo.Name;
+
+            foreach (var attr in attrs)
+            {
+                if (attr is RequiredColumn)
                 {
                     isOK = true;
                 }
