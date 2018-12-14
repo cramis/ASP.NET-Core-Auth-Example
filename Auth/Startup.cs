@@ -75,17 +75,14 @@ namespace Auth
             // configure DI for application services
 
 
-            services.AddScoped<IApiKeyValiationService, SqliteApiKeyValiationService>();
+            services.AddScoped<IApiKeyValiationService, ORMApiKeyValiationService>();
             services.AddScoped<ILoginService, SSOApiLoginService>();
-            services.AddScoped<ITokenService, SqliteTokenService>();
+            services.AddScoped<ITokenService, ORMTokenService>();
+
+            // services.AddScoped<IDapperRepository>(sp => new SqliteRepository(new ConnectionFactory().Connection("sqlite")));
+            services.AddScoped<IDapperRepository>(sp => new OracleRepository(new ConnectionFactory().Connection("sha")));
 
 
-            services.AddScoped<IDapperRepository, BaseRepository>();
-
-            services.AddScoped<IRepositoryString, SqliteRepositoryString>();
-            services.AddScoped<IORMHelper, BaseORMHelper>();
-
-            // services.AddScoped<IUserService, UserService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

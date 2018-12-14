@@ -61,3 +61,14 @@ CREATE TABLE Test
         public string Authorizer { get; set; }
 
     }
+
+
+    [Table("RefreshToken")]
+    public class RefreshToken
+    {
+        [KeyColumn]
+        public string Id { get; set; }
+        public string Audience { get; set; }
+        public string Token { get; set; }
+        public DateTime? CDate { get; set; }
+    }

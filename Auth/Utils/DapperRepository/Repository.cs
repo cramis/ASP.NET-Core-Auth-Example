@@ -47,16 +47,31 @@ namespace DapperRepository
     public class BaseRepository : IDapperRepository
     {
         private IDbConnection connection;
-        private object Model;
 
-        private IRepositoryString repoString;
+        protected IRepositoryString repoString;
 
         Serilog.ILogger logger;
+
+        public BaseRepository(IDbConnection connection)
+        {
+            this.repoString = new BaseRepositoryString(new BaseORMHelper());
+            this.logger = Log.Logger;
+
+            this.connection = connection;
+        }
 
         public BaseRepository(IRepositoryString repoString)
         {
             this.repoString = repoString;
             this.logger = Log.Logger;
+        }
+
+        public BaseRepository(IRepositoryString repoString, IDbConnection connection)
+        {
+            this.repoString = repoString;
+            this.logger = Log.Logger;
+
+            this.connection = connection;
         }
 
         public void SetConnection(IDbConnection conn)
@@ -197,134 +212,138 @@ namespace DapperRepository
         // Insert
         public int Insert<T>(T model)
         {
-            try
-            {
-                var result = connection.Execute(repoString.InsertStr(model), model);
-                logger.Debug(this.LogMessage(repoString.InsertStr(model), JsonConvert.SerializeObject(model)));
-                return result;
-            }
-            catch (Exception ex)
-            {
-                logger.Error(this.LogMessage(repoString.InsertStr(model), JsonConvert.SerializeObject(model)));
-                throw ex;
-            }
+            return DapperExcute("insert", model);
         }
 
         public async Task<int> InsertAsync<T>(T model)
         {
-            try
-            {
-                var result = await connection.ExecuteAsync(repoString.InsertStr(model), model);
-                logger.Debug(this.LogMessage(repoString.InsertStr(model), JsonConvert.SerializeObject(model)));
-                return result;
-            }
-            catch (Exception ex)
-            {
-                logger.Error(this.LogMessage(repoString.InsertStr(model), JsonConvert.SerializeObject(model)));
-                throw ex;
-            }
+            return await DapperExcuteAsync("insert", model);
         }
 
         // Update
 
         public int Update<T>(T model)
         {
-            try
-            {
-                var result = connection.Execute(repoString.UpdateStr(model), model);
-                logger.Debug(this.LogMessage(repoString.UpdateStr(model), JsonConvert.SerializeObject(model)));
-                return result;
-            }
-            catch (Exception ex)
-            {
-                logger.Error(this.LogMessage(repoString.UpdateStr(model), JsonConvert.SerializeObject(model)));
-                throw ex;
-            }
+            return DapperExcute("update", model);
         }
 
         public async Task<int> UpdateAsync<T>(T model)
         {
-            try
-            {
-                var result = await connection.ExecuteAsync(repoString.UpdateStr(model), model);
-                logger.Debug(this.LogMessage(repoString.UpdateStr(model), JsonConvert.SerializeObject(model)));
-                return result;
-            }
-            catch (Exception ex)
-            {
-                logger.Error(this.LogMessage(repoString.UpdateStr(model), JsonConvert.SerializeObject(model)));
-                throw ex;
-            }
+            return await DapperExcuteAsync("update", model);
         }
 
         // Merge
 
         public int Merge<T>(T model)
         {
-            try
-            {
-                var result = connection.Execute(repoString.MergeStr(model), model);
-                logger.Debug(this.LogMessage(repoString.MergeStr(model), JsonConvert.SerializeObject(model)));
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                logger.Error(this.LogMessage(repoString.MergeStr(model), JsonConvert.SerializeObject(model)));
-
-                throw ex;
-            }
+            return DapperExcute("merge", model);
         }
 
         public async Task<int> MergeAsync<T>(T model)
         {
-            try
-            {
-                var result = await connection.ExecuteAsync(repoString.MergeStr(model), model);
-                logger.Debug(this.LogMessage(repoString.MergeStr(model), JsonConvert.SerializeObject(model)));
-                return result;
-            }
-            catch (Exception ex)
-            {
-                logger.Error(this.LogMessage(repoString.MergeStr(model), JsonConvert.SerializeObject(model)));
-                throw ex;
-            }
+            return await DapperExcuteAsync("merge", model);
         }
 
         //Delete
         public int Delete<T>(T model)
         {
-            try
-            {
-                var result = connection.Execute(repoString.DeleteStr(model), model);
-                logger.Debug(this.LogMessage(repoString.DeleteStr(model), JsonConvert.SerializeObject(model)));
-                return result;
-            }
-            catch (Exception ex)
-            {
-                logger.Error(this.LogMessage(repoString.DeleteStr(model), JsonConvert.SerializeObject(model)));
-                throw ex;
-            }
+            return DapperExcute("delete", model);
         }
 
         public async Task<int> DeleteAsync<T>(T model)
         {
+            return await DapperExcuteAsync("delete", model);
+        }
+
+
+
+        private int DapperExcute<T>(string CUDString, T model)
+        {
+            string ExcuteString = string.Empty;
+
+            switch (CUDString)
+            {
+                case "insert":
+                    ExcuteString = repoString.InsertStr(model);
+                    break;
+                case "update":
+                    ExcuteString = repoString.UpdateStr(model);
+                    break;
+                case "merge":
+                    ExcuteString = repoString.MergeStr(model);
+                    break;
+                case "delete":
+                    ExcuteString = repoString.DeleteStr(model);
+                    break;
+            }
+
             try
             {
-                var result = await connection.ExecuteAsync(repoString.DeleteStr(model), model);
-                logger.Debug(this.LogMessage(repoString.DeleteStr(model), JsonConvert.SerializeObject(model)));
+                var result = connection.Execute(ExcuteString, model);
+                logger.Debug(this.LogMessage(ExcuteString, JsonConvert.SerializeObject(model)));
                 return result;
             }
             catch (Exception ex)
             {
-                logger.Error(this.LogMessage(repoString.DeleteStr(model), JsonConvert.SerializeObject(model)));
+                logger.Error(this.LogMessage(ExcuteString, JsonConvert.SerializeObject(model)));
                 throw ex;
             }
+
+        }
+
+        private async Task<int> DapperExcuteAsync<T>(string CUDString, T model)
+        {
+            string ExcuteString = string.Empty;
+
+            switch (CUDString)
+            {
+                case "insert":
+                    ExcuteString = repoString.InsertStr(model);
+                    break;
+                case "update":
+                    ExcuteString = repoString.UpdateStr(model);
+                    break;
+                case "merge":
+                    ExcuteString = repoString.MergeStr(model);
+                    break;
+                case "delete":
+                    ExcuteString = repoString.DeleteStr(model);
+                    break;
+            }
+
+            try
+            {
+                var result = await connection.ExecuteAsync(ExcuteString, model);
+                logger.Debug(this.LogMessage(ExcuteString, JsonConvert.SerializeObject(model)));
+                return result;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(this.LogMessage(ExcuteString, JsonConvert.SerializeObject(model)));
+                throw ex;
+            }
+
         }
 
         private string LogMessage(string sql, string args)
         {
             return string.Format("SQL : {0} / Param : {1}", sql, args);
+        }
+    }
+
+    public class OracleRepository : BaseRepository
+    {
+        public OracleRepository(IDbConnection connection) : base(connection)
+        {
+            this.repoString = new OracleRepositoryString(new BaseORMHelper());
+        }
+    }
+
+    public class SqliteRepository : BaseRepository
+    {
+        public SqliteRepository(IDbConnection connection) : base(connection)
+        {
+            this.repoString = new SqliteRepositoryString(new BaseORMHelper());
         }
     }
 }

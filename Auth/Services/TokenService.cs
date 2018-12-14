@@ -171,20 +171,16 @@ namespace Auth.Services
 
     }
 
-    public class SqliteTokenService : BaseTokenService
+    public class ORMTokenService : BaseTokenService
     {
         public IDapperRepository repo { get; }
 
-        private readonly AppSettings _appSettings;
-        public SqliteTokenService(IOptions<AppSettings> appSettings) : base(appSettings)
+        public ORMTokenService(IOptions<AppSettings> appSettings) : base(appSettings)
         {
         }
-        public SqliteTokenService(IOptions<AppSettings> appSettings, IDapperRepository repo) : base(appSettings)
+        public ORMTokenService(IOptions<AppSettings> appSettings, IDapperRepository repo) : base(appSettings)
         {
-            // _appSettings = appSettings.Value;
-
             this.repo = repo;
-            this.repo.SetConnection(new ConnectionFactory().Connection("sqlite"));
         }
 
         protected override void UpdateRefreshToken(string id, string audience, string refreshToken)
