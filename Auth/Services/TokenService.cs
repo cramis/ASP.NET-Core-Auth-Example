@@ -173,7 +173,7 @@ namespace Auth.Services
 
     public class ORMTokenService : BaseTokenService
     {
-        public IDapperRepository repo { get; }
+        private IDapperRepository repo { get; }
 
         public ORMTokenService(IOptions<AppSettings> appSettings) : base(appSettings)
         {

@@ -71,7 +71,7 @@ namespace Auth.Services
 
     public class ORMApiKeyValiationService : IApiKeyValiationService
     {
-        public IDapperRepository repo { get; }
+        private IDapperRepository repo { get; }
 
         public ORMApiKeyValiationService(IDapperRepository repo)
         {

@@ -79,8 +79,8 @@ namespace Auth
             services.AddScoped<ILoginService, SSOApiLoginService>();
             services.AddScoped<ITokenService, ORMTokenService>();
 
-            // services.AddScoped<IDapperRepository>(sp => new SqliteRepository(new ConnectionFactory().Connection("sqlite")));
-            services.AddScoped<IDapperRepository>(sp => new OracleRepository(new ConnectionFactory().Connection("sha")));
+            services.AddScoped<IDapperRepository>(sp => new SqliteRepository(new ConnectionFactory().Connection("sqlite")));
+            // services.AddScoped<IDapperRepository>(sp => new OracleRepository(new ConnectionFactory().Connection("sha")));
 
 
         }
