@@ -103,7 +103,7 @@ namespace Auth.Services
             return false;
         }
 
-        private ClaimsPrincipal GetPrincipalFromExpiredToken(string token, bool isValidLifeTime)
+        public ClaimsPrincipal GetPrincipalFromExpiredToken(string token, bool isValidLifeTime)
         {
             var tokenValidationParameters = new TokenValidationParameters
             {

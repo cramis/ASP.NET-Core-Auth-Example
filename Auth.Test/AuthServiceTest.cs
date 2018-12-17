@@ -72,7 +72,7 @@ namespace Auth.Test
 
             string oldRefreshToken = tokenInfo.RefreshToken;
 
-            var oldPrincipal = tokenService.GetPrincipalFromExpiredToken(oldjwtToken);
+            var oldPrincipal = tokenService.GetPrincipalFromExpiredToken(oldjwtToken, false);
 
 
 
@@ -97,7 +97,7 @@ namespace Auth.Test
 
             Assert.NotEqual(oldRefreshToken, newRefreshToken);
 
-            var newPrincipal = tokenService.GetPrincipalFromExpiredToken(newJwtToken);
+            var newPrincipal = tokenService.GetPrincipalFromExpiredToken(newJwtToken, false);
 
             Assert.Equal("test1", newPrincipal.FindFirst(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value);
             Assert.Equal("1", newPrincipal.FindFirst(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name").Value);
