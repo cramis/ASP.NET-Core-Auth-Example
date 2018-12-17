@@ -13,16 +13,16 @@ using Serilog;
 
 namespace Auth.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
-    public class AuthController : ControllerBase
+    public class JwtController : ControllerBase
     {
         private readonly ILoginService loginService;
         private readonly IApiKeyValiationService apikeyValidService;
         private readonly ITokenService tokenService;
         private readonly Serilog.ILogger logger;
 
-        public AuthController(ILoginService loginService, IApiKeyValiationService apikeyValidService, ITokenService tokenService)
+        public JwtController(ILoginService loginService, IApiKeyValiationService apikeyValidService, ITokenService tokenService)
         {
             this.loginService = loginService;
             this.apikeyValidService = apikeyValidService;
@@ -30,8 +30,8 @@ namespace Auth.Controllers
             this.logger = Log.Logger;
         }
 
-        [HttpPost]
-        public IActionResult Post([FromBody] LoginInfo loginInfo)
+        [HttpPost("authentication")]
+        public IActionResult Authentication([FromBody] LoginInfo loginInfo)
         {
 
             try
@@ -91,6 +91,23 @@ namespace Auth.Controllers
             catch (Exception ex)
             {
                 logger.Error(ex, "인증에 실패했습니다.");
+                return NotFound(ex.Message);
+            }
+
+        }
+
+        [HttpGet("ValidateToken")]
+        public IActionResult ValidateToken(string Userid, string token)
+        {
+            try
+            {
+                var isValid = this.tokenService.ValidateToken(Userid, token);
+
+                return Ok(isValid);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "토큰 검증에 실패했습니다.");
                 return NotFound(ex.Message);
             }
 
