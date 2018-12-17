@@ -17,6 +17,8 @@ namespace Auth.Services
 
         TokenInfo RefreshToken(string token, string refreshToken);
 
+        bool ValidateToken(string userId, string token);
+
 
     }
 
@@ -58,7 +60,7 @@ namespace Auth.Services
 
         public virtual TokenInfo RefreshToken(string token, string refreshToken)
         {
-            var principal = GetPrincipalFromExpiredToken(token);
+            var principal = GetPrincipalFromExpiredToken(token, false);
 
             // 토큰 값에서 해당하는 id, userName, audience를 가지고 옴
             var id = principal.Identity.Name;
@@ -83,7 +85,25 @@ namespace Auth.Services
             return tokenInfo;
         }
 
-        public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+        public bool ValidateToken(string userId, string token)
+        {
+            try
+            {
+                var principal = GetPrincipalFromExpiredToken(token, true);
+
+                var id = principal.Identity.Name;
+
+                if (userId == id) return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+
+            return false;
+        }
+
+        private ClaimsPrincipal GetPrincipalFromExpiredToken(string token, bool isValidLifeTime)
         {
             var tokenValidationParameters = new TokenValidationParameters
             {
@@ -91,7 +111,7 @@ namespace Auth.Services
                 ValidateIssuer = false,
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_appSettings.JwtKey)),
-                ValidateLifetime = false //here we are saying that we don't care about the token's expiration date
+                ValidateLifetime = isValidLifeTime //here we are saying that we don't care about the token's expiration date
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();
